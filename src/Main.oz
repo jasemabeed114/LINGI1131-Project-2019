@@ -3,38 +3,62 @@ import
    GUI
    Input
    PlayerManager
+   Browser
 define
    WindowPort
 
    InitPlayers
+   InitMove
 
    NbPlayers
    Positions
    PlayerPorts
+
 
 in
    %% Implement your controller here
    WindowPort = {GUI.portWindow} % Cree le port pour la window
    {Send WindowPort buildWindow} % Envoie la commande pour creer la window
 
-   Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
    NbPlayers = Input.nbBombers
-   thread PlayerPorts = {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions} end
+   thread PlayerPorts = {InitPlayers NbPlayers Input.colorsBombers Input.bombers} end
 
-   fun{InitPlayers NbPlayers ColorPlayers NamePlayers PositionPlayers}
+   thread {InitMove PlayerPorts} end
+
+   fun{InitPlayers NbPlayers ColorPlayers NamePlayers}
       if NbPlayers == 0 then nil
       else
-         case ColorPlayers#NamePlayers#PositionPlayers 
-         of (ColorH|ColorT)#(NameH|NameT)#(PositionH|PositionT) then 
-            ID PlayerPort in
+         case ColorPlayers#NamePlayers 
+         of (ColorH|ColorT)#(NameH|NameT) then 
+            ID PlayerPort InitPosition IDD in
             ID = bomber(id:NbPlayers color:ColorH name:NameH)
             PlayerPort = {PlayerManager.playerGenerator NameH ID}
+            {Send PlayerPort spawn(IDD InitPosition)}
             {Send WindowPort initPlayer(ID)}
-            {Send WindowPort spawnPlayer(ID PositionH)}
-            PlayerPort|{InitPlayers NbPlayers-1 ColorT NameT PositionT}
+            {Send WindowPort spawnPlayer(ID InitPosition)}
+            PlayerPort|{InitPlayers NbPlayers-1 ColorT NameT}
          end
       end
    end
+
+   proc{InitMove PlayerPorts}
+      proc{Mover P}
+         ID Move
+      in
+         {Send P doaction(ID Move)}
+         {Send WindowPort movePlayer(ID Move.1)} % Simply move the bomber
+         {Delay 2000}
+         {Mover P}
+      end
+   in
+      case PlayerPorts of nil then skip
+      [] H|T then
+         thread {Mover H} end
+         {InitMove T}
+      end
+   end
+
+
 
 
 
