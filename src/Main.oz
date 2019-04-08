@@ -41,19 +41,21 @@ in
       end
    end
 
-   proc{InitMove PlayerPorts}
+   proc{InitMove PlayerPorts_2}
       proc{Mover P}
          ID Move
       in
          {Send P doaction(ID Move)}
-         {Send WindowPort movePlayer(ID Move.1)} % Simply move the bomber
+         case Move
+         of move(Pos) then {Send WindowPort movePlayer(ID Pos)} % Simply move the bomber
+         else skip
+         end
          {Delay 2000}
-         {Mover P}
       end
    in
-      case PlayerPorts of nil then skip
+      case PlayerPorts_2 of nil then {InitMove PlayerPorts}
       [] H|T then
-         thread {Mover H} end
+         {Mover H}
          {InitMove T}
       end
    end
