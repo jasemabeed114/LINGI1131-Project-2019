@@ -10,7 +10,7 @@
 COMPILE = /Applications/Mozart2.app/Contents/Resources/bin/ozc -c
 EXECUTE = /Applications/Mozart2.app/Contents/Resources/bin/ozengine
 
-all: compile input run
+all: clean compile input run
 
 input: Input.oz
 		${COMPILE} Input.oz
