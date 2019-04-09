@@ -57,9 +57,14 @@ in
          Prob in
          IDD = ID
          Prob = ({OS.rand} + 1) mod 9
-         if Prob == 141 then 
-            Action = bomb(Position)
-            {TreatStream T ID State Position Points NbBomb}
+         if Prob == 5 then 
+            if NbBomb > 0 then
+               Action = bomb(Position)
+               {TreatStream T ID State Position Points NbBomb-1}
+            else
+               Action = null
+               {TreatStream T ID State Position Points NbBomb}
+            end
          else
             P2 in
             P2 = ({OS.rand} + 1) mod 4

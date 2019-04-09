@@ -64,6 +64,7 @@ in
          {Send P doaction(ID Move)}
          case Move
          of move(Pos) then {Send WindowPort movePlayer(ID Pos)} % Simply move the bomber
+         [] bomb(Pos) then {Send WindowPort spawnBomb(Pos)}
          else skip
          end
          {Delay 2000}
