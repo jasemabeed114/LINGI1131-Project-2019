@@ -7,19 +7,24 @@
 # TODO complete the header with your group number, your noma's and full names
 
 # TODO write your makefile here
+COMPILE = /Applications/Mozart2.app/Contents/Resources/bin/ozc -c
+EXECUTE = /Applications/Mozart2.app/Contents/Resources/bin/ozengine
 
 all: compile input run
 
 input: Input.oz
-		/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Input.oz
+		${COMPILE} Input.oz
 compile: PlayerManager.oz compilePlayers GUI.oz Main.oz
-		/Applications/Mozart2.app/Contents/Resources/bin/ozc -c PlayerManager.oz GUI.oz Main.oz
+		${COMPILE} PlayerManager.oz GUI.oz Main.oz
+
+%.ozf: %.oz
+		${COMPILE} $<
 
 compilePlayers: Player000name.oz
-		/Applications/Mozart2.app/Contents/Resources/bin/ozc -c Player000name.oz
+		${COMPILE} Player000name.oz
 
 run: Main.ozf
-		/Applications/Mozart2.app/Contents/Resources/bin/ozengine Main.ozf
+		${EXECUTE} Main.ozf
 
 clean:
 		rm -rf Player000name.ozf
