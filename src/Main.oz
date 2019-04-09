@@ -8,14 +8,22 @@ define
    WindowPort
 
    InitPlayers
-   InitMove
+   TurnByTurn
 
    NbPlayers
    Positions
    PlayerPorts
+   NColumns
+   NRows
+   Map
 
 
 in
+
+   NColumns = Input.nbColumn
+   NRows    = Input.nbRow
+   Map      = Input.map
+
    %% Implement your controller here
    WindowPort = {GUI.portWindow} % Cree le port pour la window
    {Send WindowPort buildWindow} % Envoie la commande pour creer la window
@@ -23,7 +31,7 @@ in
    NbPlayers = Input.nbBombers
    thread PlayerPorts = {InitPlayers NbPlayers Input.colorsBombers Input.bombers} end
 
-   thread {InitMove PlayerPorts} end
+   thread {TurnByTurn PlayerPorts} end
 
    fun{InitPlayers NbPlayers ColorPlayers NamePlayers}
       if NbPlayers == 0 then nil
@@ -41,7 +49,7 @@ in
       end
    end
 
-   proc{InitMove PlayerPorts_2}
+   proc{TurnByTurn PlayerPortsList}
       proc{Mover P}
          ID Move
       in
@@ -53,15 +61,12 @@ in
          {Delay 2000}
       end
    in
-      case PlayerPorts_2 of nil then {InitMove PlayerPorts}
+      case PlayerPortsList of nil then {TurnByTurn PlayerPorts}
       [] H|T then
          {Mover H}
-         {InitMove T}
+         {TurnByTurn T}
       end
    end
-
-
-
 
 
 
