@@ -29,25 +29,29 @@ in
    {Send WindowPort buildWindow} % Envoie la commande pour creer la window
 
    NbPlayers = Input.nbBombers
-   thread PlayerPorts = {InitPlayers NbPlayers Input.colorsBombers Input.bombers} end
+
+   Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
+
+   thread PlayerPorts = {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions} end
 
    thread {TurnByTurn PlayerPorts} end
 
-   fun{InitPlayers NbPlayers ColorPlayers NamePlayers}
-      if NbPlayers == 0 then nil
-      else
-         case ColorPlayers#NamePlayers 
-         of (ColorH|ColorT)#(NameH|NameT) then 
-            ID PlayerPort InitPosition IDD in
-            ID = bomber(id:NbPlayers color:ColorH name:NameH)
+   fun{InitPlayers NbPlayers ColorPlayers NamePlayers PositionPlayers}
+	   if NbPlayers == 0 then nil
+	   else
+         case ColorPlayers#NamePlayers#PositionPlayers 
+	      of (ColorH|ColorT)#(NameH|NameT)#(PositionH|PositionT) then 
+	         ID PlayerPort in
+	         ID = bomber(id:NbPlayers color:ColorH name:NameH)
             PlayerPort = {PlayerManager.playerGenerator NameH ID}
-            {Send PlayerPort spawn(IDD InitPosition)}
-            {Send WindowPort initPlayer(ID)}
-            {Send WindowPort spawnPlayer(ID InitPosition)}
-            PlayerPort|{InitPlayers NbPlayers-1 ColorT NameT}
-         end
+            {Send PlayerPort assignSpawn(PositionH)}
+	         {Send WindowPort initPlayer(ID)}
+	         {Send WindowPort spawnPlayer(ID PositionH)}
+	         PlayerPort|{InitPlayers NbPlayers-1 ColorT NameT PositionT}
+	      end
       end
    end
+   
 
    proc{TurnByTurn PlayerPortsList}
       proc{Mover P}
@@ -58,7 +62,7 @@ in
          of move(Pos) then {Send WindowPort movePlayer(ID Pos)} % Simply move the bomber
          else skip
          end
-         {Delay 500}
+         {Delay 2000}
       end
    in
       case PlayerPortsList of nil then {TurnByTurn PlayerPorts}

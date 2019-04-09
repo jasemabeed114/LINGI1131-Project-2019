@@ -21,7 +21,6 @@ in
    Row = Input.nbRow
    Column = Input.nbColumn
 
-
    Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
 
    fun{StartPlayer ID}
@@ -32,7 +31,7 @@ in
       end
       {NewPort Stream Port}
       thread State Pos in 
-	 {TreatStream OutputStream ID State Positions.1}
+      {TreatStream OutputStream ID State Positions.1}
       end
       Port
    end
@@ -42,6 +41,8 @@ in
       case Stream 
       of getID(IDD)|T then IDD = ID {TreatStream T ID State Position}
       [] getState(IDD SState)|T then IDD = ID SState = State {TreatStream T ID State Position}
+      [] assignSpawn(Pos)|T then
+         {TreatStream T ID State Pos}
       [] spawn(IDD Pos)|T then
          IDD = ID
          Pos = Position

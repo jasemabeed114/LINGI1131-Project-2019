@@ -48,9 +48,9 @@ in
 
 %%%% Players description %%%%
 
-   NbBombers = 2
-   Bombers = [player000bomber player000bomber]
-   ColorBombers = [yellow red]
+   NbBombers = 1
+   Bombers = [player000bomber]
+   ColorBombers = [yellow]
 
 %%%% Parameters %%%%
 
