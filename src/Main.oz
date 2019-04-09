@@ -58,7 +58,7 @@ in
          of move(Pos) then {Send WindowPort movePlayer(ID Pos)} % Simply move the bomber
          else skip
          end
-         {Delay 2000}
+         {Delay 500}
       end
    in
       case PlayerPortsList of nil then {TurnByTurn PlayerPorts}

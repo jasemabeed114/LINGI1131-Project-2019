@@ -13,8 +13,11 @@ define
    Positions
    Row
    Column
+   CheckMove
+   Map
 
 in
+   Map = Input.map
    Row = Input.nbRow
    Column = Input.nbColumn
 
@@ -54,7 +57,7 @@ in
             P2 in
             P2 = ({OS.rand} + 1) mod 4
             if P2 == 0 then
-               if Position.x+1 < Column then
+               if {CheckMove Position.x+1 Position.y} then
                   Action = move(pt(x:Position.x+1 y:Position.y))
                   {TreatStream T ID State Action.1}
                else
@@ -62,7 +65,7 @@ in
                   {TreatStream T ID State Action.1}
                end
             elseif P2 == 1 then
-               if Position.x-1 > 1 then
+               if {CheckMove Position.x-1 Position.y} then
                   Action = move(pt(x:Position.x-1 y:Position.y))
                   {TreatStream T ID State Action.1}
                else
@@ -70,7 +73,7 @@ in
                   {TreatStream T ID State Action.1}
                end
             elseif P2 == 2 then
-               if Position.y+1 < Row then
+               if {CheckMove Position.x Position.y+1} then
                   Action = move(pt(x:Position.x y:Position.y+1))
                   {TreatStream T ID State Action.1}
                else
@@ -78,7 +81,7 @@ in
                   {TreatStream T ID State Action.1}
                end
             elseif P2 == 3 then
-               if Position.y-1 > 1 then
+               if {CheckMove Position.x Position.y-1} then
                   Action = move(pt(x:Position.x y:Position.y-1))
                   {TreatStream T ID State Action.1}
                else
@@ -87,6 +90,24 @@ in
                end
             end
          end
+      end
+   end
+
+   %% Function to check if the new position is valid
+   fun{CheckMove X Y}
+      fun{CheckMap X Y}
+         fun{Nth L N}
+            if N == 1 then L.1
+            else {Nth L.2 N-1}
+            end
+         end
+      in
+         {Nth {Nth Map Y} X} \= 1
+      end
+   in
+      if (X >= 1 andthen X < Column+1 andthen Y >= 1 andthen Y < Row+1 andthen {CheckMap X Y})
+      then true
+      else false
       end
    end
    
