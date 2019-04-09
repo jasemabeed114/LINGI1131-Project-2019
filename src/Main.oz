@@ -34,7 +34,11 @@ in
 
    thread PlayerPorts = {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions} end
 
-   thread {TurnByTurn PlayerPorts} end
+   if Input.isTurnByTurn then
+      thread {TurnByTurn PlayerPorts} end
+   else
+      skip %similtane
+   end
 
    fun{InitPlayers NbPlayers ColorPlayers NamePlayers PositionPlayers}
 	   if NbPlayers == 0 then nil
