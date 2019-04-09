@@ -9,6 +9,7 @@ define
 
    InitPlayers
    TurnByTurn
+   Explode 
 
    NbPlayers
    Positions
@@ -35,7 +36,7 @@ in
    thread PlayerPorts = {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions} end
 
    if Input.isTurnByTurn then
-      thread {TurnByTurn PlayerPorts} end
+      thread {TurnByTurn PlayerPorts nil} end
    else
       skip %similtane
    end
@@ -57,26 +58,40 @@ in
    end
    
 
-   proc{TurnByTurn PlayerPortsList}
-      proc{Mover P}
-         ID Move
-      in
-         {Send P doaction(ID Move)}
+   proc{TurnByTurn PlayerPortsList Bombs}
+      NewBombs
+   in
+      case PlayerPortsList 
+      of nil then {Delay 1000} {TurnByTurn PlayerPorts Bombs}
+      [] H|T then ID Move in
+         NewBombs = {Explode Bombs}
+         {Send H doaction(ID Move)}
          case Move
-         of move(Pos) then {Send WindowPort movePlayer(ID Pos)} % Simply move the bomber
-         [] bomb(Pos) then {Send WindowPort spawnBomb(Pos)}
+         of move(Pos) then 
+            {Send WindowPort movePlayer(ID Pos)} % Simply move the bomber
+         [] bomb(Pos) then 
+            {Send WindowPort spawnBomb(Pos)}
+            {Delay 1000}
+            {TurnByTurn T (Input.timingBomb#Pos)|NewBombs}
          else skip
          end
-         {Delay 2000}
-      end
-   in
-      case PlayerPortsList of nil then {TurnByTurn PlayerPorts}
-      [] H|T then
-         {Mover H}
-         {TurnByTurn T}
+         {Delay 1000}
+         {TurnByTurn T NewBombs}
       end
    end
 
-
+   fun{Explode L}
+      case L of nil then nil
+      [] (N#Pos)|T then
+         if N == 0 then 
+            {Send WindowPort spawnFire(Pos)}
+            {Send WindowPort hideBomb(Pos)}
+            {Delay 3000}
+            {Send WindowPort hideFire(Pos)}
+            {Explode T}
+         else ((N-1)#Pos)|{Explode T}
+         end
+      end
+   end
 
 end
