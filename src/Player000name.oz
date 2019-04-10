@@ -10,7 +10,6 @@ define
    StartPlayer
    TreatStream
    Name = 'namefordebug'
-   Positions
    Row
    Column
    CheckMove
@@ -29,8 +28,8 @@ in
          OutputStream = {Projet2019util.portPlayerChecker Name ID Stream}
       end
       {NewPort Stream Port}
-      thread State Pos in 
-      {TreatStream OutputStream ID State null 0 Input.nbBombs}
+      thread Pos in 
+      {TreatStream OutputStream ID off null 0 Input.nbBombs}
       end
       Port
    end
@@ -45,7 +44,7 @@ in
       [] spawn(IDD Pos)|T then
          IDD = ID
          Pos = Position
-         {TreatStream T ID State Position Points NbBomb}
+         {TreatStream T ID on Position Points NbBomb}
       [] add(Type Option Result)|T then
          case Type
          of bomb then Result = NbBomb + Option
@@ -81,7 +80,7 @@ in
                   Action = move(pt(x:Position.x-1 y:Position.y))
                   {TreatStream T ID State Action.1 Points NbBomb}
                else
-               Action = move(pt(x:Position.x y:Position.y))
+                  Action = move(pt(x:Position.x y:Position.y))
                   {TreatStream T ID State Action.1 Points NbBomb}
                end
             elseif P2 == 2 then
@@ -89,7 +88,7 @@ in
                   Action = move(pt(x:Position.x y:Position.y+1))
                   {TreatStream T ID State Action.1 Points NbBomb}
                else
-               Action = move(pt(x:Position.x y:Position.y))
+                  Action = move(pt(x:Position.x y:Position.y))
                   {TreatStream T ID State Action.1 Points NbBomb}
                end
             elseif P2 == 3 then
