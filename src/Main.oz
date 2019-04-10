@@ -120,18 +120,21 @@ in
    %% Idea: all the calls to PropagagionInOneDirection will send to a special port
    %% To tell which positions must have the fire to stop ?
    proc{PropagateFire Position PortFire}
-      proc{PropagationInOneDirection CurrentPosition PreviousPosition}
-         case CurrentPosition of pt(x:X y:Y) then
-            if {CheckMove X Y} == false then skip
-            else
-               {Send WindowPort spawnFire(CurrentPosition)}
-               %% HERE CHECK FOR DEATH
-               case PreviousPosition of pt(x:XP y:YP) then
-                  XF YF in
-                  XF = X + (X-XP)
-                  YF = Y + (Y-YP)
-                  {Send PortFire CurrentPosition}
-                  {PropagationInOneDirection pt(x:XF y:YF) CurrentPosition}
+      proc{PropagationInOneDirection CurrentPosition PreviousPosition Count}
+         if Count >= Input.fire then skip
+         else
+            case CurrentPosition of pt(x:X y:Y) then
+               if {CheckMove X Y} == false then skip
+               else
+                  {Send WindowPort spawnFire(CurrentPosition)}
+                  %% HERE CHECK FOR DEATH
+                  case PreviousPosition of pt(x:XP y:YP) then
+                     XF YF in
+                     XF = X + (X-XP)
+                     YF = Y + (Y-YP)
+                     {Send PortFire CurrentPosition}
+                     {PropagationInOneDirection pt(x:XF y:YF) CurrentPosition Count+1}
+                  end
                end
             end
          end
@@ -140,10 +143,10 @@ in
       {Send WindowPort spawnFire(Position)}
       {Send PortFire Position}
       case Position of pt(x:X y:Y) then C1 C2 C3 C4 CT in
-         thread {PropagationInOneDirection pt(x:X+1 y:Y) Position} C1=1 end
-         thread {PropagationInOneDirection pt(x:X-1 y:Y) Position} C2=2 end
-         thread {PropagationInOneDirection pt(x:X y:Y+1) Position} C3=3 end
-         thread {PropagationInOneDirection pt(x:X y:Y-1) Position} C4=4 end
+         thread {PropagationInOneDirection pt(x:X+1 y:Y) Position 0} C1=1 end
+         thread {PropagationInOneDirection pt(x:X-1 y:Y) Position 0} C2=2 end
+         thread {PropagationInOneDirection pt(x:X y:Y+1) Position 0} C3=3 end
+         thread {PropagationInOneDirection pt(x:X y:Y-1) Position 0} C4=4 end
          CT = C1+C2+C3+C4 %% Wait for the threads to terminate
       end
    end

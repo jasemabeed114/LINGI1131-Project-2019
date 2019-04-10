@@ -60,7 +60,7 @@ in
    ThinkMin = 500  % in millisecond
    ThinkMax = 2000 % in millisecond
    
-   Fire = 3
+   Fire = 1
    TimingBomb = 3 
    TimingBombMin = 3000 % in millisecond
    TimingBombMax = 4000 % in millisecond
