@@ -64,31 +64,45 @@ in
       NewBombs
       NewFires
    in
-      {Delay 500}
+      {Delay 250}
       case PlayerPortsList 
-      of nil then {TurnByTurn PlayerPorts Bombs Fires}
-      [] H|T then ID Move PortFire ListFire State in
-         thread {CleanFire Fires} end
-         PortFire = {NewPort ListFire}
-         NewBombs = {Explode Bombs PortFire}
-         {Send PortFire nil}
+      of nil then 
+         % Start again the loop
+         {TurnByTurn PlayerPorts Bombs Fires}
+
+      % Process the next player
+      [] H|T then
+         ID State in
+         % Get the Id and state
          {Send H getState(ID State)}
-         if State == off then Pos in
-            {Send H spawn(ID Pos)}
-            {Send WindowPort movePlayer(ID Pos)}
-            {TurnByTurn T NewBombs ListFire}
-         end
-         {Send H doaction(ID Move)}
-         case Move
-         of move(Pos) then 
-            {Send WindowPort movePlayer(ID Pos)} % Simply move the bomber
-            {TurnByTurn T NewBombs ListFire}
-         [] bomb(Pos) then 
-            {Send WindowPort spawnBomb(Pos)}
-            {TurnByTurn T (Input.timingBomb#Pos#H)|NewBombs ListFire}
-         [] null then 
-            {TurnByTurn T NewBombs ListFire}
-         else {Browser.browse Move}
+         % If the player is still on the board
+         if State == on then
+            Move PortFire ListFire in
+            % Clean fire from previous turn
+            thread {CleanFire Fires} end
+
+            % Create the new local port to collect the fire blocks
+            PortFire = {NewPort ListFire}
+            % Check if bombs have to explode
+            % If yes, then the fire will propagate
+            NewBombs = {Explode Bombs PortFire}
+            % To finish the sequence
+            {Send PortFire nil}
+
+            % Ask the player to do its next action
+            {Send H doaction(ID Move)}
+            case Move
+            of move(Pos) then 
+               {Send WindowPort movePlayer(ID Pos)} % Simply move the bomber
+               {TurnByTurn T NewBombs ListFire}
+            [] bomb(Pos) then 
+               {Send WindowPort spawnBomb(Pos)}
+               {TurnByTurn T (Input.timingBomb#Pos#H)|NewBombs ListFire}
+            [] null then 
+               {TurnByTurn T NewBombs ListFire}
+            else {Browser.browse Move}
+            end
+         else {TurnByTurn T Bombs Fires}
          end
       end
    end
@@ -114,7 +128,7 @@ in
             {Send WindowPort hideBomb(Pos)}
             {Send PortPlayer add(bomb 1 Result)}
             {PropagateFire Pos PortFire}
-            {InformOtherPlayer PlayerPorts Pos}
+            %{InformOtherPlayer PlayerPorts Pos}
             {Explode T PortFire}
          else ((N-1)#Pos#PortPlayer)|{Explode T PortFire}
          end
@@ -141,6 +155,30 @@ in
    %% Idea: all the calls to PropagagionInOneDirection will send to a special port
    %% To tell which positions must have the fire to stop ?
    proc{PropagateFire Position PortFire}
+      proc{ProcessDeath PlayerPort Position}
+         case PlayerPort of nil then skip
+         [] H|T then ID Result Pos in
+            {Send H position(Pos)}
+            if Pos == Position then % Got hit
+               {Send H gotHit(ID Result)}
+               case Result of death(NewLife) then % Was on the map and no shield
+                  if NewLife > 0 then
+                     ID2 Spawn in
+                     {Send H spawn(ID2 Spawn)}
+                     {Send WindowPort movePlayer(ID2 Spawn)}
+                     {Send WindowPort lifeUpdate(ID2 NewLife)}
+                  else % No more life
+                     {Send WindowPort hidePlayer(ID)}
+                  end
+               else % Was off or had a shield
+                  {ProcessDeath T Position}
+               end
+            else
+               {ProcessDeath T Position}
+            end
+         end
+      end
+                  
       proc{PropagationInOneDirection CurrentPosition PreviousPosition Count}
          if Count >= Input.fire then skip
          else
@@ -148,7 +186,7 @@ in
                if {CheckMove X Y} == false then skip
                else
                   {Send WindowPort spawnFire(CurrentPosition)}
-                  %% HERE CHECK FOR DEATH
+                  {ProcessDeath PlayerPorts CurrentPosition}
                   case PreviousPosition of pt(x:XP y:YP) then
                      XF YF in
                      XF = X + (X-XP)
@@ -163,6 +201,7 @@ in
    in
       {Send WindowPort spawnFire(Position)}
       {Send PortFire Position}
+      {ProcessDeath PlayerPorts Position}
       case Position of pt(x:X y:Y) then C1 C2 C3 C4 CT in
          thread {PropagationInOneDirection pt(x:X+1 y:Y) Position 0} C1=1 end
          thread {PropagationInOneDirection pt(x:X-1 y:Y) Position 0} C2=2 end
