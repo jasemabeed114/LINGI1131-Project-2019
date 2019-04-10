@@ -88,12 +88,27 @@ in
    end
 
    fun{Explode L PortFire}
+      proc{InformOtherPlayer PlayerPortsList Pos}
+         case PlayerPortsList of nil then skip
+         [] H|T then ID State in
+            {Send H info(bombExploded(Pos))}
+            {Send H getState(ID State)}
+            if State == off then IDD Result in
+               {Send WindowPort hidePlayer(ID)}
+               {Send H gotHit(IDD Result)}
+               {Send WindowPort lifeUpdate(IDD Result.1)}
+            end
+            {InformOtherPlayer T Pos}
+         end
+      end
+   in
       case L of nil then nil
       [] (N#Pos#PortPlayer)|T then
          if N == 0 then Result in
             {Send WindowPort hideBomb(Pos)}
             {Send PortPlayer add(bomb 1 Result)}
             {PropagateFire Pos PortFire}
+            {InformOtherPlayer PlayerPorts Pos}
             {Explode T PortFire}
          else ((N-1)#Pos#PortPlayer)|{Explode T PortFire}
          end
