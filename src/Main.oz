@@ -68,7 +68,7 @@ in
       case PlayerPortsList 
       of nil then {TurnByTurn PlayerPorts Bombs Fires}
       [] H|T then ID Move PortFire ListFire in
-         {CleanFire Fires}
+         thread {CleanFire Fires} end
          PortFire = {NewPort ListFire}
          NewBombs = {Explode Bombs PortFire}
          {Send PortFire nil}
