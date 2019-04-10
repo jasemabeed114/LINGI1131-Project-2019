@@ -67,11 +67,17 @@ in
       {Delay 500}
       case PlayerPortsList 
       of nil then {TurnByTurn PlayerPorts Bombs Fires}
-      [] H|T then ID Move PortFire ListFire in
+      [] H|T then ID Move PortFire ListFire State in
          thread {CleanFire Fires} end
          PortFire = {NewPort ListFire}
          NewBombs = {Explode Bombs PortFire}
          {Send PortFire nil}
+         {Send H getState(ID State)}
+         if State == off then Pos in
+            {Send H spawn(ID Pos)}
+            {Send WindowPort movePlayer(ID Pos)}
+            {TurnByTurn T NewBombs ListFire}
+         end
          {Send H doaction(ID Move)}
          case Move
          of move(Pos) then 

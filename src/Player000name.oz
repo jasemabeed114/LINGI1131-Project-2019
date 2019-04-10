@@ -30,48 +30,48 @@ in
       end
       {NewPort Stream Port}
       thread Pos in 
-      {TreatStream OutputStream ID on null 0 Input.nbBombs Input.nbLives}
+      {TreatStream OutputStream ID on null 0 Input.nbBombs Input.nbLives null}
       end
       Port
    end
 
    
-   proc{TreatStream Stream ID State Position Points NbBomb NbLife} %% TODO you may add some arguments if needed
+   proc{TreatStream Stream ID State Position Points NbBomb NbLife SpawnPos} %% TODO you may add some arguments if needed
       case Stream 
-      of getID(IDD)|T then IDD = ID {TreatStream T ID State Position Points NbBomb NbLife}
-      [] getState(IDD SState)|T then IDD = ID SState = State {TreatStream T ID State Position Points NbBomb NbLife}
+      of getID(IDD)|T then IDD = ID {TreatStream T ID State Position Points NbBomb NbLife SpawnPos}
+      [] getState(IDD SState)|T then IDD = ID SState = State {TreatStream T ID State Position Points NbBomb NbLife SpawnPos}
       [] assignSpawn(Pos)|T then
-         {TreatStream T ID State Pos Points NbBomb NbLife}
+         {TreatStream T ID State Pos Points NbBomb NbLife Pos}
       [] spawn(IDD Pos)|T then
          IDD = ID
-         Pos = Position
-         {TreatStream T ID on Position Points NbBomb NbLife}
+         Pos = SpawnPos
+         {TreatStream T ID on Position Points NbBomb NbLife SpawnPos}
       [] add(Type Option Result)|T then
          case Type
          of bomb then Result = NbBomb + Option
-            {TreatStream T ID State Position Points Result NbLife}
+            {TreatStream T ID State Position Points Result NbLife SpawnPos}
          [] point then Result = Points + Option
-            {TreatStream T ID State Position Result NbBomb NbLife}
+            {TreatStream T ID State Position Result NbBomb NbLife SpawnPos}
          end
       [] info(Message)|T then
          case Message
          of deadPlayer(IDD) then
-            if (IDD == ID) then {TreatStream T ID off Position Points NbBomb NbLife} end
+            if (IDD == ID) then {TreatStream T ID off Position Points NbBomb NbLife SpawnPos} end
          [] spawnPlayer(ID Pos) then skip
          [] movePlayer(ID Pos) then skip
          [] deadPlayer(ID) then skip
          [] bombPlanted(Pos) then skip
          [] bombExploded(Pos) then
             if({IdDead Position Pos}) 
-            then {TreatStream T ID off Position Points NbBomb NbLife}
+            then {TreatStream T ID off Position Points NbBomb NbLife SpawnPos}
             end
          [] boxRemoved(Pos) then skip
          end
-         {TreatStream T ID State Position Points NbBomb NbLife}
+         {TreatStream T ID State Position Points NbBomb NbLife SpawnPos}
       [] gotHit(IDD Result)|T then
          IDD = ID
          Result = death(NbLife-1)
-         {TreatStream T ID off Position Points NbBomb NbLife-1}
+         {TreatStream T ID off Position Points NbBomb NbLife-1 SpawnPos}
       [] doaction(IDD Action)|T then
          Prob in
          IDD = ID
@@ -79,10 +79,10 @@ in
          if Prob == 5 then 
             if NbBomb > 0 then
                Action = bomb(Position)
-               {TreatStream T ID State Position Points NbBomb-1 NbLife}
+               {TreatStream T ID State Position Points NbBomb-1 NbLife SpawnPos}
             else
                Action = null
-               {TreatStream T ID State Position Points NbBomb NbLife}
+               {TreatStream T ID State Position Points NbBomb NbLife SpawnPos}
             end
          else
             P2 in
@@ -90,34 +90,34 @@ in
             if P2 == 0 then
                if {CheckMove Position.x+1 Position.y} then
                   Action = move(pt(x:Position.x+1 y:Position.y))
-                  {TreatStream T ID State Action.1 Points NbBomb NbLife}
+                  {TreatStream T ID State Action.1 Points NbBomb NbLife SpawnPos}
                else
                   Action = move(pt(x:Position.x y:Position.y))
-                  {TreatStream T ID State Action.1 Points NbBomb NbLife}
+                  {TreatStream T ID State Action.1 Points NbBomb NbLife SpawnPos}
                end
             elseif P2 == 1 then
                if {CheckMove Position.x-1 Position.y} then
                   Action = move(pt(x:Position.x-1 y:Position.y))
-                  {TreatStream T ID State Action.1 Points NbBomb NbLife}
+                  {TreatStream T ID State Action.1 Points NbBomb NbLife SpawnPos}
                else
                   Action = move(pt(x:Position.x y:Position.y))
-                  {TreatStream T ID State Action.1 Points NbBomb NbLife}
+                  {TreatStream T ID State Action.1 Points NbBomb NbLife SpawnPos}
                end
             elseif P2 == 2 then
                if {CheckMove Position.x Position.y+1} then
                   Action = move(pt(x:Position.x y:Position.y+1))
-                  {TreatStream T ID State Action.1 Points NbBomb NbLife}
+                  {TreatStream T ID State Action.1 Points NbBomb NbLife SpawnPos}
                else
                   Action = move(pt(x:Position.x y:Position.y))
-                  {TreatStream T ID State Action.1 Points NbBomb NbLife}
+                  {TreatStream T ID State Action.1 Points NbBomb NbLife SpawnPos}
                end
             elseif P2 == 3 then
                if {CheckMove Position.x Position.y-1} then
                   Action = move(pt(x:Position.x y:Position.y-1))
-                  {TreatStream T ID State Action.1 Points NbBomb NbLife}
+                  {TreatStream T ID State Action.1 Points NbBomb NbLife SpawnPos}
                else
                   Action = move(pt(x:Position.x y:Position.y))
-                  {TreatStream T ID State Action.1 Points NbBomb NbLife}
+                  {TreatStream T ID State Action.1 Points NbBomb NbLife SpawnPos}
                end
             end
          end
