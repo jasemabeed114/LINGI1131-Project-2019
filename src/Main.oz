@@ -231,7 +231,7 @@ in
       end
    end
 
-   fun{GetMapVal Map X Y}
+   fun{GetMapVal X Y}
       fun{Nth L N}
          if N == 1 then L.1
          else {Nth L.2 N-1}
@@ -239,19 +239,19 @@ in
       end
       List
    in
-      if(X > Input.nbColumn) then 'dimension error'
-      elseif (Y > Input.nbRow) then 'dimension error'
+      if X > Input.nbColumn or X < 1 then 'dimension error'
+      elseif Y > Input.nbRow or Y < 1 then 'dimension error'
       else
          List = {Nth Map Y}
          {Nth List X}
       end
    end
 
-   fun{SetMapVal Map X Y A}
+   fun{SetMapVal X Y A}
       fun{Modif L N A}
-         case L of nil then nil
+         case L of nil then error
          [] H|T then
-	         if N==1 then A|{Modif T N-1 A}
+	         if N==1 then A|T
 	         else H|{Modif T N-1 A}
 	         end
          end
@@ -260,7 +260,7 @@ in
       case Map of nil then nil
       [] H|T then
          if Y == 1 then
-	         {Modif H X A}|{SetMapVal T X Y-1 A}
+	         {Modif H X A}|T
          else
 	         H|{SetMapVal T X Y-1 A}
          end
