@@ -216,6 +216,8 @@ in
         end
         MapChanges Top Bottom Left Right
     in
+        {Send WindowPort spawnFire(Pos)}
+        {Send NewFiresPort Pos}
         case Pos of pt(x:X y:Y) then
             thread {PropagationOneDirection pt(x:X+1 y:Y) Pos 0 Right} end % Right
             thread {PropagationOneDirection pt(x:X-1 y:Y) Pos 0 Left} end % Left
