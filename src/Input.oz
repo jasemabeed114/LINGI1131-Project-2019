@@ -54,7 +54,7 @@ in
 
 %%%% Parameters %%%%
 
-   NbLives = 5
+   NbLives = 10
    NbBombs = 1
  
    ThinkMin = 500  % in millisecond

@@ -12,6 +12,7 @@ define
    TurnByTurn
    ProcessBombs
    DisableFirePreviousTurn
+   SetMapVal
    MapChange
    CheckMove
    InformationPlayers
@@ -112,29 +113,59 @@ in
                 {Send PortH doaction(IDAction Action)}
                 case Action of move(Pos) then
                     NextEnd2
-                    Check
+                    CheckPosition
                 in
-                    {Send WindowPort movePlayer(ID Pos)}
-                    Check = {CheckMove Pos.x Pos.y Map}
-                    if(Check == pointfloor) then Result in
-                        {Send PortH add(point 1 Result)}
-                        {Send WindowPort hidePoint(Pos)}
-                        {Send WindowPort scoreUpdate(IDAction Result)}
-                    elseif (Check == bonusfloot) then Result Rand in
+                    {Send WindowPort movePlayer(ID Pos)} % Move the player on the screen
+                    CheckPosition = {CheckMove Pos.x Pos.y Map}
+                    if(CheckPosition == pointfloor) then % The player is on a point floor, he gets the point
+                        Result MapWithoutPoint
+                    in
+                        {Send PortH add(point 1 Result)} % Gives the point and ask the result
+                        {Send WindowPort hidePoint(Pos)} % Hides the point from the screen
+                        {Send WindowPort scoreUpdate(IDAction Result)} % Update the score of the player ID
+                        MapWithoutPoint = {SetMapVal Map Pos.x Pos.y 0}
+
+                        if Result >= 50 then % The player has 50 points or more, he wins
+                            {Send WindowPort displayWinner(ID)} % Display the winner
+                        else % The player doesn't win, we continue the recursion
+                            %% Recursion
+                            PlayersPositionNextEnd = Pos|NextEnd2
+                            {TurnByTurn MapWithoutPoint PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
+                        end
+                    elseif (CheckPosition == bonusfloot) then 
+                        Result Rand 
+                    in
                         Rand = {OS.rand} + 1 mod 2
-                        if Rand == 0 then
+                        if Rand == 0 then % We give 10 points to the player
+                            MapWithoutBonus
+                        in
                             {Send PortH add(point 10 Result)}
                             {Send WindowPort hideBonus(Pos)}
                             {Send WindowPort scoreUpdate(IDAction Result)}
-                        else %Rand==1
+                            MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
+
+                            if Result >= 50 then % The player has 50 points or more, he wins
+                                {Send WindowPort displayWinner(ID)}
+                            else % The player doesn't win, we continue the recursion
+                                %% Recursion
+                                PlayersPositionNextEnd = Pos|NextEnd2
+                                {TurnByTurn MapWithoutBonus PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
+                            end
+                        elseif Rand == 1 then % We give an additionnal bomb
+                            MapWithoutBonus
+                        in
                             {Send PortH add(bomb 1 Result)}
                             {Send WindowPort hideBonus(Pos)}
+                            MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
+                            %% Recursion
+                            PlayersPositionNextEnd = Pos|NextEnd2
+                            {TurnByTurn MapWithoutBonus PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
                         end
+                    else
+                        %% Recursion
+                        PlayersPositionNextEnd = Pos|NextEnd2
+                        {TurnByTurn Map PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
                     end
-                    %% Recursion
-                    PlayersPositionNextEnd = Pos|NextEnd2
-                    {TurnByTurn Map PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
-                
                 [] bomb(Pos) then
                     NextEnd2
                 in 
@@ -213,7 +244,7 @@ in
                     % Potentially send an information
                     case Result of death(NewLife) then % Was on the board
                         if NewLife == 0 then % Dead player
-                            {InformationPlayers PlayersPort deadPlayer(ID)}
+                            {InformationPlayers PlayersPort info(deadPlayer(ID))}
                             {Send WindowPort hidePlayer(ID)}
                             {Send WindowPort lifeUpdate(ID NewLife)}
                             {ProcessDeath FirePosition PortT PosT}
@@ -338,26 +369,27 @@ in
         end
     end
 
-    fun{MapChange Map Changes}
-        fun{SetMapVal Map X Y Value}
-            fun{Modif L N Value}
-                case L of nil then nil
-                [] H|T then
-                    if N == 1 then Value|T
-                    else H|{Modif T N-1 Value}
-                    end
-                end
-            end
-        in
-            case Map of nil then nil
+    fun{SetMapVal Map X Y Value}
+        fun{Modif L N Value}
+            case L of nil then nil
             [] H|T then
-                if Y == 1 then
-                    {Modif H X Value}|T
-                else
-                    H|{SetMapVal T X Y-1 Value}
+                if N == 1 then Value|T
+                else H|{Modif T N-1 Value}
                 end
             end
         end
+    in
+        case Map of nil then nil
+        [] H|T then
+            if Y == 1 then
+                {Modif H X Value}|T
+            else
+                H|{SetMapVal T X Y-1 Value}
+            end
+        end
+    end
+
+    fun{MapChange Map Changes}
         MapTop
         MapBottom
         MapLeft
