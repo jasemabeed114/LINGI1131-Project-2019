@@ -4,6 +4,7 @@ import
    Input
    PlayerManager
    Browser
+   OS
 define
    WindowPort
 
@@ -111,9 +112,25 @@ in
                 {Send PortH doaction(IDAction Action)}
                 case Action of move(Pos) then
                     NextEnd2
+                    Check
                 in
                     {Send WindowPort movePlayer(ID Pos)}
-
+                    Check = {CheckMove Pos.x Pos.y Map}
+                    if(Check == pointfloor) then Result in
+                        {Send PortH add(point 1 Result)}
+                        {Send WindowPort hidePoint(Pos)}
+                        {Send WindowPort scoreUpdate(IDAction Result)}
+                    elseif (Check == bonusfloot) then Result Rand in
+                        Rand = {OS.rand} + 1 mod 2
+                        if Rand == 0 then
+                            {Send PortH add(point 10 Result)}
+                            {Send WindowPort hideBonus(Pos)}
+                            {Send WindowPort scoreUpdate(IDAction Result)}
+                        else %Rand==1
+                            {Send PortH add(bomb 1 Result)}
+                            {Send WindowPort hideBonus(Pos)}
+                        end
+                    end
                     %% Recursion
                     PlayersPositionNextEnd = Pos|NextEnd2
                     {TurnByTurn Map PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
@@ -267,6 +284,8 @@ in
         end
         MapChanges Top Bottom Left Right
     in
+        {Send WindowPort spawnFire(Pos)}
+        {Send NewFiresPort Pos}
         case Pos of pt(x:X y:Y) then
             thread % Also for the place where the bomb was
                 {Send WindowPort spawnFire(Pos)}
