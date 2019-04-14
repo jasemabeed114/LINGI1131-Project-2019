@@ -39,7 +39,7 @@ in
    
    proc{TreatStream Stream ID State Position Points NbBomb NbLife Point} %% TODO you may add some arguments if needed
       case Stream 
-      of getID(IDD)|T then IDD = ID {TreatStream T ID State Position Points NbBomb NbLife Point}
+      of getId(IDD)|T then IDD = ID {TreatStream T ID State Position Points NbBomb NbLife Point}
       [] getState(IDD SState)|T then IDD = ID SState = State {TreatStream T ID State Position Points NbBomb NbLife Point}
       [] assignSpawn(Pos)|T then
          SpawnPos = Pos

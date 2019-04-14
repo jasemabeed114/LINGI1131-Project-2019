@@ -9,6 +9,7 @@ define
    WindowPort
 
    InitPlayers
+   InitPlayersSpawnInformation
    TurnByTurn
    ProcessBombs
    DisableFirePreviousTurn
@@ -44,12 +45,22 @@ in
         Next
     in
       thread 
+      {InitPlayersSpawnInformation PlayersPort PlayersPosition}
       {TurnByTurn Map PlayersPort PlayersPosition Next Next nil nil|_} 
       end
    else
       skip %simultane
    end
-
+    proc{InitPlayersSpawnInformation PlayerPort PlayersPosition}
+        case PlayerPort#PlayersPosition
+        of nil#nil then skip
+        [](PortH|PortT)#(PositionH|PositionT) then ID in
+            {Send PortH getId(ID)}
+            {Wait ID}
+            {InformationPlayers PlayerPort info(spawnPlayer(ID PositionH))}
+            {InitPlayersSpawnInformation PortT PositionT}
+        end
+    end
     proc{InitPlayers NbPlayers ColorPlayers NamePlayers Positions PlayersPosition PlayersPort}
         if NbPlayers == 0 then 
             PlayersPosition = nil PlayersPort = nil
