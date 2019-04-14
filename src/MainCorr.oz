@@ -135,6 +135,7 @@ in
         case Ports of nil then skip
         [] H|T then
             {Send H InformationMessage}
+            {InformationPlayers T InformationMessage}
         end
     end
 
@@ -188,14 +189,14 @@ in
                         {InformationPlayers PlayersPort info(boxRemoved(CurrentPosition))} % Warn other players
                         {Send WindowPort hideBox(CurrentPosition)} % Hides the box
                         {Send WindowPort spawnPoint(CurrentPosition)} % And shows the point
-                        Changing = CurrentPosition#4
+                        Changing = CurrentPosition#5
                     elseif Check == bonus then
                         % It is a bonus box
                         % Destroy the box and stop propaging
                         {InformationPlayers PlayersPort info(boxRemoved(CurrentPosition))} % Warn other players
                         {Send WindowPort hideBox(CurrentPosition)} % Hides the box
                         {Send WindowPort spawnBonus(CurrentPosition)} % And shows the bonus
-                        Changing = CurrentPosition#5
+                        Changing = CurrentPosition#6
                     else
                         % Either a floor tile, a point or a bonus
                         % For the time being, we let them in place
@@ -237,7 +238,7 @@ in
     end
 
     fun{CheckMove X Y Map}
-        fun{CHeckMap X Y}
+        fun{CheckMap X Y}
             fun{Nth L N}
                 if N == 1 then L.1
                 else {Nth L.2 N-1}
@@ -250,13 +251,14 @@ in
             elseif Point == 1 then wall
             elseif Point == 2 then point
             elseif Point == 3 then bonus
-            elseif Point == 4 then pointfloor
-            elseif Point == 5 then bonusfloot
+            elseif Point == 4 then spawn
+            elseif Point == 5 then pointfloor
+            elseif Point == 6 then bonusfloot
             end
         end
     in
-        if (X >= 1 andthen X < Input.nbRow+1 andthen Y >= 1 andthen Y < Input.nbColumn+1) == true then
-            {CHeckMap X Y}
+        if (X >= 1 andthen X < Input.nbColumn+1 andthen Y >= 1 andthen Y < Input.nbRow+1) == true then
+            {CheckMap X Y}
         else
             false
         end
