@@ -15,6 +15,7 @@ define
    CheckMove
    InformationPlayers
    PropagationFire
+   CheckEndGame
    
    
    Map
@@ -24,7 +25,7 @@ define
    PlayersPort  % Initial position of all the players
 in
 
-   Map      = Input.map
+   Map = Input.map
 
    %% Implement your controller here
    WindowPort = {GUI.portWindow} % Cree le port pour la window
@@ -40,7 +41,7 @@ in
    if Input.isTurnByTurn then
         Next
     in
-      thread {TurnByTurn Map PlayersPort PlayersPosition Next Next nil nil} end
+      thread {TurnByTurn Map PlayersPort PlayersPosition Next Next nil nil|_} end
    else
       skip %simultane
    end
@@ -73,20 +74,32 @@ in
             NewFiresPort
             MapAfterExplosions
             NewFires
+            ResultEndGame
+            WinnerEndGame
         in
             PlayersPositionNextEnd = nil % End of the list NextEnd
             % The PlayersPositionNext is now complete with all the new positions
             
             % Disable the fires of the previous turn which is finished
-            thread {DisableFirePreviousTurn Fires} end
+            {DisableFirePreviousTurn Fires}
             % Create the new port to listen to the Fire
             NewFiresPort = {NewPort NewFires}
             %% Process here the explosion and the rest
             {ProcessBombs Bombs NewBombs PlayersPositionNext NewFiresPort Map ?MapAfterExplosions}
 
-            %% Recursion back to the beginning
-            {Delay 200}
-            {TurnByTurn MapAfterExplosions PlayersPort PlayersPositionNext FutureNext FutureNext NewBombs NewFires}
+            %% Check if the game is over after the new explosions
+            {CheckEndGame ResultEndGame WinnerEndGame}
+            if ResultEndGame == true then % End of game
+                if WinnerEndGame == none then % No one won
+                    {Browser.browse 'No one won'}
+                else
+                    {Send WindowPort displayWinner(WinnerEndGame)} % Give the ID of the Winner
+                end
+            else
+                %% Recursion back to the beginning
+                {Delay 200}
+                {TurnByTurn MapAfterExplosions PlayersPort PlayersPositionNext FutureNext FutureNext NewBombs NewFires}
+            end
         [] (PortH|PortT)#(PositionH|PositionT) then
             ID State
         in
@@ -139,9 +152,10 @@ in
         end
     end
 
-    proc{ProcessBombs Bombs NewBombs PlayersPosition NewFiresPort MapAcc ?MapReturn}
+    proc{ProcessBombs Bombs NewBombs PlayersPos NewFiresPort MapAcc ?MapReturn}
         case Bombs of nil then 
             NewBombs = nil
+            {Send NewFiresPort nil}
             MapReturn = MapAcc
         [] (N#Pos#PortPlayer)|T then
             if N == 0 then % Explosion of the bomb
@@ -150,13 +164,13 @@ in
                 {Send WindowPort hideBomb(Pos)} % GUI information
                 {Send PortPlayer add(bomb 1 Result)} % Giving back the bomb
                 {InformationPlayers PlayersPort info(bombExploded(Pos))} % Warn the other players of the bomb exploded
-                {PropagationFire Pos MapAcc NewFiresPort MapAcc2} % Propagation of the fire
-                {ProcessBombs T NewBombs PlayersPosition NewFiresPort MapAcc2 ?MapReturn} % Recursion
+                {PropagationFire Pos MapAcc NewFiresPort PlayersPos MapAcc2} % Propagation of the fire
+                {ProcessBombs T NewBombs PlayersPos NewFiresPort MapAcc2 ?MapReturn} % Recursion
             else
                 NewBombsTails
             in
                 NewBombs = ((N-1)#Pos#PortPlayer)|NewBombsTails % Substract 1 to the delay
-                {ProcessBombs T NewBombsTails PlayersPosition NewFiresPort MapAcc ?MapReturn} % Recursion
+                {ProcessBombs T NewBombsTails PlayersPos NewFiresPort MapAcc ?MapReturn} % Recursion
             end
         end
     end
@@ -170,7 +184,43 @@ in
         end
     end
 
-    proc{PropagationFire Pos Map NewFiresPort MapReturn}
+    proc{PropagationFire Pos Map NewFiresPort PlayPosition MapReturn}
+
+        proc{ProcessDeath FirePosition Ports PlayerPos}
+            case Ports#PlayerPos of nil#_ then skip % Process for each player
+            [] (PortH|PortT)#(PosH|PosT) then
+                if FirePosition.x == PosH.x andthen FirePosition.y == PosH.y then % The fire is at the location of the player
+                    ID Result
+                in
+                    {Send PortH gotHit(ID Result)}
+                    % Potentially send an information
+                    case Result of death(NewLife) then % Was on the board
+                        if NewLife == 0 then % Dead player
+                            {InformationPlayers PlayersPort deadPlayer(ID)}
+                            {Send WindowPort hidePlayer(ID)}
+                            {Send WindowPort lifeUpdate(ID NewLife)}
+                            {ProcessDeath FirePosition PortT PosT}
+                        else % Still has lifes
+                            ID2 SpawnPosition
+                        in
+                            {Send PortH spawn(ID2 SpawnPosition)}
+                            {Send WindowPort movePlayer(ID2 SpawnPosition)}
+                            {Send WindowPort spawnFire(FirePosition)}
+                            {Send WindowPort lifeUpdate(ID2 NewLife)}
+                            {InformationPlayers PlayersPort info(movePlayer(ID2 SpawnPosition))}
+
+                            %% Recursion
+                            {ProcessDeath FirePosition PortT PosT}
+                        end
+                    else % null meaning that the player is off the board
+                        {ProcessDeath FirePosition PortT PosT}
+                    end
+                else % Continue
+                    {ProcessDeath FirePosition PortT PosT}
+                end
+            end
+        end
+
         proc{PropagationOneDirection CurrentPosition PreviousPosition Count Changing}
             %{Delay 1000}
             if Count >= Input.fire then Changing = null
@@ -203,6 +253,7 @@ in
                         % Continue propaging, and sends the position of the fire
                         {Send NewFiresPort CurrentPosition} % Sends the position of the fire
                         {Send WindowPort spawnFire(CurrentPosition)} % Display the fire on the screen
+                        {ProcessDeath CurrentPosition PlayersPort PlayPosition}
                         case PreviousPosition of pt(x:XP y:YP) then
                             XF YF 
                         in
@@ -217,6 +268,11 @@ in
         MapChanges Top Bottom Left Right
     in
         case Pos of pt(x:X y:Y) then
+            thread % Also for the place where the bomb was
+                {Send WindowPort spawnFire(Pos)}
+                {Send NewFiresPort Pos}
+                {ProcessDeath Pos PlayersPort PlayPosition}
+            end
             thread {PropagationOneDirection pt(x:X+1 y:Y) Pos 0 Right} end % Right
             thread {PropagationOneDirection pt(x:X-1 y:Y) Pos 0 Left} end % Left
             thread {PropagationOneDirection pt(x:X y:Y+1) Pos 0 Bottom} end % Bottom
@@ -224,7 +280,6 @@ in
             
             {Wait Top} {Wait Bottom} {Wait Left} {Wait Right} % Wait for the instruction bellow
             MapChanges = changes(Top Bottom Left Right)
-            {Send NewFiresPort nil} % To indicate that it is done
             % The case where the fire exploded must have been a floor tile
 
             MapReturn = {MapChange Map MapChanges}
@@ -311,6 +366,46 @@ in
             Map
         end
     end
+
+    % Check if the game is over
+    % Result bound to true if the game is over
+    %   Winner is bound to the winner
+    %   none if all dead
+    % Else Result == null and we don't care about Winner
+    proc{CheckEndGame ?Result ?Winner} % For the points, it is directly done when we give a point to a player
+        fun{Loop Ports Count ?PlayersStillAlive}
+            case Ports of nil then PlayersStillAlive = nil Count
+            [] H|T then
+                ID State
+            in
+                {Send H getState(ID State)}
+                if State == on then% On the board
+                    NextEnd
+                in
+                    PlayersStillAlive = ID|NextEnd
+                    {Loop T Count+1 NextEnd}
+                else % Off the board
+                    {Loop T Count PlayersStillAlive}
+                end
+            end
+        end
+        PlayersAlive Count
+    in
+        Count = {Loop PlayersPort 0 PlayersAlive}
+        if Count == 0 then
+            Result = true
+            Winner = none
+        elseif Count == 1 then
+            Result = true
+            Winner = PlayersAlive.1
+        else
+            Result = false
+            Winner = none
+        end
+    end
+
+                    
+
             
 
 
