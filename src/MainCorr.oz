@@ -98,9 +98,16 @@ in
                 {Send PortH doaction(IDAction Action)}
                 case Action of move(Pos) then
                     NextEnd2
+                    Check
                 in
                     {Send WindowPort movePlayer(ID Pos)}
-
+                    Check = {CheckMove Pos.x Pos.y Map}
+                    if(Check == pointfloor) then Result in
+                        {Send PortH add(point 1 Result)}
+                        {Send WindowPort hidePoint(Pos)}
+                        {Send WindowPort scoreUpdate(IDAction Result)}
+                        
+                    end
                     %% Recursion
                     PlayersPositionNextEnd = Pos|NextEnd2
                     {TurnByTurn Map PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
