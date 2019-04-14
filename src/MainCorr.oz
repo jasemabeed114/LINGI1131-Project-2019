@@ -45,8 +45,8 @@ in
         Next
     in
       thread 
-      {InitPlayersSpawnInformation PlayersPort PlayersPosition}
-      {TurnByTurn Map PlayersPort PlayersPosition Next Next nil nil|_} 
+        {InitPlayersSpawnInformation PlayersPort PlayersPosition}
+        {TurnByTurn Map PlayersPort PlayersPosition Next Next nil nil|_} 
       end
    else
       skip %simultane
@@ -54,10 +54,12 @@ in
     proc{InitPlayersSpawnInformation PlayerPort PlayersPosition}
         case PlayerPort#PlayersPosition
         of nil#nil then skip
-        [](PortH|PortT)#(PositionH|PositionT) then ID in
+        [](PortH|PortT)#(PositionH|PositionT) then 
+            ID 
+        in
             {Send PortH getId(ID)}
             {Wait ID}
-            {InformationPlayers PlayerPort info(spawnPlayer(ID PositionH))}
+            thread {InformationPlayers PlayerPort info(spawnPlayer(ID PositionH))} end
             {InitPlayersSpawnInformation PortT PositionT}
         end
     end
