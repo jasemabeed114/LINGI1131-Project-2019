@@ -43,7 +43,9 @@ in
    if Input.isTurnByTurn then
         Next
     in
-      thread {TurnByTurn Map PlayersPort PlayersPosition Next Next nil nil|_} end
+      thread 
+      {TurnByTurn Map PlayersPort PlayersPosition Next Next nil nil|_} 
+      end
    else
       skip %simultane
    end
@@ -117,6 +119,7 @@ in
                     CheckPosition
                 in
                     {Send WindowPort movePlayer(ID Pos)} % Move the player on the screen
+                    {InformationPlayers PlayersPortTail info(movePlayer(ID Pos))}
                     CheckPosition = {CheckMove Pos.x Pos.y Map}
                     if(CheckPosition == pointfloor) then % The player is on a point floor, he gets the point
                         Result MapWithoutPoint
@@ -171,7 +174,7 @@ in
                     NextEnd2
                 in 
                     {Send WindowPort spawnBomb(Pos)} % Show the bomb on the window
-
+                    {InformationPlayers PlayersPortTail info(bombPlanted(Pos))}
                     %% Recursion
                     PlayersPositionNextEnd = PositionH|NextEnd2
                     {TurnByTurn Map PortT PositionT PlayersPositionNext NextEnd2 (Input.timingBomb#Pos#PortH)|Bombs Fires}
@@ -256,7 +259,7 @@ in
                             {Send WindowPort movePlayer(ID2 SpawnPosition)}
                             {Send WindowPort spawnFire(FirePosition)}
                             {Send WindowPort lifeUpdate(ID2 NewLife)}
-                            {InformationPlayers PlayersPort info(movePlayer(ID2 SpawnPosition))}
+                            {InformationPlayers PlayersPort info(spawnPlayer(ID2 SpawnPosition))}
 
                             %% Recursion
                             {ProcessDeath FirePosition PortT PosT}
