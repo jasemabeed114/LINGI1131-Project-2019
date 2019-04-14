@@ -4,6 +4,7 @@ import
    Input
    PlayerManager
    Browser
+   OS
 define
    WindowPort
 
@@ -106,7 +107,16 @@ in
                         {Send PortH add(point 1 Result)}
                         {Send WindowPort hidePoint(Pos)}
                         {Send WindowPort scoreUpdate(IDAction Result)}
-                        
+                    elseif (Check == bonusfloot) then Result Rand in
+                        Rand = {OS.rand} + 1 mod 2
+                        if Rand == 0 then
+                            {Send PortH add(point 10 Result)}
+                            {Send WindowPort hideBonus(Pos)}
+                            {Send WindowPort scoreUpdate(IDAction Result)}
+                        else %Rand==1
+                            {Send PortH add(bomb 1 Result)}
+                            {Send WindowPort hideBonus(Pos)}
+                        end
                     end
                     %% Recursion
                     PlayersPositionNextEnd = Pos|NextEnd2
