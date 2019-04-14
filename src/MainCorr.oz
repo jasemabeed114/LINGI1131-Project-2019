@@ -92,6 +92,7 @@ in
             %% Check if the game is over after the new explosions
             {CheckEndGame ResultEndGame WinnerEndGame}
             if ResultEndGame == true then % End of game
+                {DisableFirePreviousTurn NewFires}
                 if WinnerEndGame == none then % No one won
                     {Browser.browse 'No one won'}
                 else
@@ -443,23 +444,15 @@ in
         PlayersAlive Count
     in
         Count = {Loop PlayersPort 0 PlayersAlive}
-        if Count == 0 then
-            Result = true
-            Winner = none
-        elseif Count == 1 then
-            Result = true
-            Winner = PlayersAlive.1
-        else
-            Result = false
-            Winner = none
-        end
-    end
-
-                    
-
-            
-
-
-
-
+        if Count == 0 then 
+            Result = true 
+            Winner = none 
+        elseif Count == 1 then 
+            Result = true 
+            Winner = PlayersAlive.1 
+        else 
+            Result = false 
+            Winner = none 
+        end 
+    end 
 end
