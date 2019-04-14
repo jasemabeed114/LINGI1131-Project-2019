@@ -14,8 +14,8 @@ all: clean compile input run
 
 input: Input.oz
 		${COMPILE} Input.oz
-compile: PlayerManager.oz compilePlayers GUI.oz Main.oz
-		${COMPILE} PlayerManager.oz GUI.oz Main.oz
+compile: PlayerManager.oz compilePlayers GUI.oz MainCorr.oz
+		${COMPILE} PlayerManager.oz GUI.oz MainCorr.oz
 
 %.ozf: %.oz
 		${COMPILE} $<
@@ -23,8 +23,8 @@ compile: PlayerManager.oz compilePlayers GUI.oz Main.oz
 compilePlayers: Player000name.oz
 		${COMPILE} Player000name.oz
 
-run: Main.ozf
-		${EXECUTE} Main.ozf
+run: MainCorr.ozf
+		${EXECUTE} MainCorr.ozf
 
 clean:
 		rm -rf Player000name.ozf
@@ -32,3 +32,4 @@ clean:
 		rm -rf PlayerManager.ozf
 		rm -rf GUI.ozf
 		rm -rf Main.ozf
+		rm -rf MainCorr.ozf

@@ -12,6 +12,7 @@ define
    Explode 
    PropagateFire
    CheckMove
+   CheckMoveFire
    GetMapVal
    SetMapVal
    CleanFire
@@ -33,14 +34,14 @@ in
    %% Implement your controller here
    WindowPort = {GUI.portWindow} % Cree le port pour la window
    {Send WindowPort buildWindow} % Envoie la commande pour creer la window
-
+ 
    NbPlayers = Input.nbBombers
 
    Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
 
    thread PlayerPorts = {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions} end
    if Input.isTurnByTurn then
-      thread {TurnByTurn PlayerPorts nil nil} end
+      thread {TurnByTurn PlayerPorts nil nil Map Positions nil} end
    else
       skip %simultane
    end
@@ -50,10 +51,11 @@ in
 	   else
          case ColorPlayers#NamePlayers#PositionPlayers 
 	      of (ColorH|ColorT)#(NameH|NameT)#(PositionH|PositionT) then 
-	         ID PlayerPort in
+	         ID PlayerPort Position IDS in
 	         ID = bomber(id:NbPlayers color:ColorH name:NameH)
             PlayerPort = {PlayerManager.playerGenerator NameH ID}
             {Send PlayerPort assignSpawn(PositionH)}
+            {Send PlayerPort spawn(IDS Position)}
 	         {Send WindowPort initPlayer(ID)}
 	         {Send WindowPort spawnPlayer(ID PositionH)}
 	         PlayerPort|{InitPlayers NbPlayers-1 ColorT NameT PositionT}
@@ -62,7 +64,7 @@ in
    end
    
 
-   proc{TurnByTurn PlayerPortsList Bombs Fires}
+   proc{TurnByTurn PlayerPortsList Bombs Fires Map PlayerPositionsRest PlayerPositionsHead}
       NewBombs
       NewFires
    in
@@ -70,7 +72,7 @@ in
       case PlayerPortsList 
       of nil then 
          % Start again the loop
-         {TurnByTurn PlayerPorts Bombs Fires}
+         {TurnByTurn PlayerPorts Bombs Fires Map PlayerPositionsHead nil}
 
       % Process the next player
       [] H|T then
@@ -79,7 +81,7 @@ in
          {Send H getState(ID State)}
          % If the player is still on the board
          if State == on then
-            Move PortFire ListFire in
+            Move PortFire ListFire MapExploded in
             % Clean fire from previous turn
             thread {CleanFire Fires} end
 
@@ -87,7 +89,7 @@ in
             PortFire = {NewPort ListFire}
             % Check if bombs have to explode
             % If yes, then the fire will propagate
-            NewBombs = {Explode Bombs PortFire}
+            NewBombs = {Explode Bombs PortFire Map MapExploded }
             % To finish the sequence
             {Send PortFire nil}
 
@@ -96,43 +98,37 @@ in
             case Move
             of move(Pos) then 
                {Send WindowPort movePlayer(ID Pos)} % Simply move the bomber
-               {TurnByTurn T NewBombs ListFire}
+               {TurnByTurn T NewBombs ListFire MapExploded PlayerPositionsRest.2 Pos|PlayerPositionsHead}
             [] bomb(Pos) then 
                {Send WindowPort spawnBomb(Pos)}
-               {TurnByTurn T (Input.timingBomb#Pos#H)|NewBombs ListFire}
+               {TurnByTurn T (Input.timingBomb#Pos#H)|NewBombs ListFire MapExploded PlayerPositionsRest.2 PlayerPositionsRest.1|PlayerPositionsHead}
             [] null then 
-               {TurnByTurn T NewBombs ListFire}
+               {TurnByTurn T NewBombs ListFire MapExploded PlayerPositionsRest.2 PlayerPositionsRest.1|PlayerPositionsHead}
             else {Browser.browse Move}
             end
-         else {TurnByTurn T Bombs Fires}
+         else {TurnByTurn T Bombs Fires Map PlayerPositionsRest.2 PlayerPositionsRest.1|PlayerPositionsHead}
          end
       end
    end
 
-   fun{Explode L PortFire}
+   fun{Explode L PortFire MapIn ?MapReturn}
       proc{InformOtherPlayer PlayerPortsList Pos}
          case PlayerPortsList of nil then skip
          [] H|T then ID State in
             {Send H info(bombExploded(Pos))}
-            {Send H getState(ID State)}
-            if State == off then IDD Result in
-               {Send WindowPort hidePlayer(ID)}
-               {Send H gotHit(IDD Result)}
-               {Send WindowPort lifeUpdate(IDD Result.1)}
-            end
             {InformOtherPlayer T Pos}
          end
       end
    in
-      case L of nil then nil
+      case L of nil then MapReturn = MapIn nil
       [] (N#Pos#PortPlayer)|T then
-         if N == 0 then Result in
+         if N == 0 then Result MapInPropa in
             {Send WindowPort hideBomb(Pos)}
             {Send PortPlayer add(bomb 1 Result)}
-            {PropagateFire Pos PortFire}
-            %{InformOtherPlayer PlayerPorts Pos}
-            {Explode T PortFire}
-         else ((N-1)#Pos#PortPlayer)|{Explode T PortFire}
+            MapInPropa = {PropagateFire Pos PortFire}
+            {InformOtherPlayer PlayerPorts Pos}
+            {Explode T PortFire MapInPropa MapReturn}
+         else MapInPropa in ((N-1)#Pos#PortPlayer)|{Explode T PortFire MapInPropa MapReturn}
          end
       end
    end
@@ -156,11 +152,10 @@ in
    %% Still have to take care of the fire to stop
    %% Idea: all the calls to PropagagionInOneDirection will send to a special port
    %% To tell which positions must have the fire to stop ?
-   proc{PropagateFire Position PortFire}
-      proc{ProcessDeath PlayerPort Position}
-         case PlayerPort of nil then skip
-         [] H|T then ID Result Pos in
-            {Send H position(Pos)}
+   fun{PropagateFire Position PortFire PlayersPosition}
+      proc{ProcessDeath PlayerPort Position PlayersPosition}
+         case PlayerPort#PlayersPosition of nil then skip
+         [] (H|T)#(Pos|PosT) then ID Result in
             if Pos == Position then % Got hit
                {Send H gotHit(ID Result)}
                case Result of death(NewLife) then % Was on the map and no shield
@@ -173,20 +168,31 @@ in
                      {Send WindowPort hidePlayer(ID)}
                   end
                else % Was off or had a shield
-                  {ProcessDeath T Position}
+                  {ProcessDeath T Position PosT}
                end
             else
-               {ProcessDeath T Position}
+               {ProcessDeath T Position PosT}
             end
          end
       end
                   
-      proc{PropagationInOneDirection CurrentPosition PreviousPosition Count}
-         if Count >= Input.fire then skip
+      fun{PropagationInOneDirection CurrentPosition PreviousPosition Count Map}
+         if Count >= Input.fire then Map
          else
-            case CurrentPosition of pt(x:X y:Y) then
-               if {CheckMove X Y} == false then skip
-               else
+            case CurrentPosition of pt(x:X y:Y) then MapReturn Bool in
+               Bool = {CheckMoveFire X Y}
+               if Bool == false then Map % Wall
+               elseif Bool == box then % Box
+                  {Send WindowPort hideBox(CurrentPosition)} % Delete Box from screen
+                  {Send WindowPort spawnBonus(CurrentPosition)} % Show bonus on screen
+                  MapReturn = {SetMapVal Map X Y 12} % Change map value
+                  MapReturn % Stop propaging
+               elseif Bool == point then % Point
+                  {Send WindowPort hideBox(CurrentPosition)} % Delete Box from screen
+                  {Send WindowPort spawnPoint(CurrentPosition)} % Show bonus on screen
+                  MapReturn = {SetMapVal Map X Y 12} % Change map value
+                  MapReturn % Stop propaging
+               else % Free place
                   {Send WindowPort spawnFire(CurrentPosition)}
                   {ProcessDeath PlayerPorts CurrentPosition}
                   case PreviousPosition of pt(x:XP y:YP) then
@@ -194,7 +200,7 @@ in
                      XF = X + (X-XP)
                      YF = Y + (Y-YP)
                      {Send PortFire CurrentPosition}
-                     {PropagationInOneDirection pt(x:XF y:YF) CurrentPosition Count+1}
+                     {PropagationInOneDirection pt(x:XF y:YF) CurrentPosition Count+1 Map}
                   end
                end
             end
@@ -204,12 +210,15 @@ in
       {Send WindowPort spawnFire(Position)}
       {Send PortFire Position}
       {ProcessDeath PlayerPorts Position}
-      case Position of pt(x:X y:Y) then C1 C2 C3 C4 CT in
-         thread {PropagationInOneDirection pt(x:X+1 y:Y) Position 0} C1=1 end
-         thread {PropagationInOneDirection pt(x:X-1 y:Y) Position 0} C2=2 end
-         thread {PropagationInOneDirection pt(x:X y:Y+1) Position 0} C3=3 end
-         thread {PropagationInOneDirection pt(x:X y:Y-1) Position 0} C4=4 end
-         CT = C1+C2+C3+C4 %% Wait for the threads to terminate
+      case Position of pt(x:X y:Y) then Map1 Map2 Map3 Map4 in
+         thread 
+            Map1 = {PropagationInOneDirection pt(x:X+1 y:Y) Position 0 Map}
+            Map2 = {PropagationInOneDirection pt(x:X-1 y:Y) Position 0 Map1}
+            Map3 = {PropagationInOneDirection pt(x:X y:Y+1) Position 0 Map2}
+            Map4 = {PropagationInOneDirection pt(x:X y:Y-1) Position 0 Map3}
+         end
+         {Wait Map4}
+         Map4
       end
    end
 
@@ -221,11 +230,36 @@ in
             else {Nth L.2 N-1}
             end
          end
+      Point
       in
-         {Nth {Nth Map Y} X} \= 1
+         Point = {Nth {Nth Map Y} X}
+         Point \= 1 andthen Point \= 2 andthen Point \= 3
       end
    in
       if (X >= 1 andthen X < NbColumn+1 andthen Y >= 1 andthen Y < NbRow+1 andthen {CheckMap X Y})
+      then true
+      else false
+      end
+   end
+
+   fun{CheckMoveFire X Y}
+      fun{CheckMap X Y}
+         fun{Nth L N}
+            if N == 1 then L.1
+            else {Nth L.2 N-1}
+            end
+         end
+      Point
+      in
+         Point = {Nth {Nth Map Y} X}
+         if Point == 1 then false
+         elseif Point == 2 then point
+         elseif Point == 3 then bonus
+         else true
+         end
+      end
+   in
+      if (X >= 1 andthen X < NbColumn+1 andthen Y >= 1 andthen Y < NbRow+1 andthen {CheckMap X Y}) == true
       then true
       else false
       end
@@ -239,15 +273,15 @@ in
       end
       List
    in
-      if X > Input.nbColumn or X < 1 then 'dimension error'
-      elseif Y > Input.nbRow or Y < 1 then 'dimension error'
+      if X > Input.nbColumn orelse X < 1 then dimError
+      elseif Y > Input.nbRow orelse Y < 1 then dimError
       else
          List = {Nth Map Y}
          {Nth List X}
       end
    end
 
-   fun{SetMapVal X Y A}
+   fun{SetMapVal Map X Y A}
       fun{Modif L N A}
          case L of nil then error
          [] H|T then
