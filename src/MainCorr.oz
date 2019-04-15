@@ -139,6 +139,7 @@ in
                     in
                         {Send PortH add(point 1 Result)} % Gives the point and ask the result
                         {Send WindowPort hidePoint(Pos)} % Hides the point from the screen
+                        {Wait Result}
                         {Send WindowPort scoreUpdate(IDAction Result)} % Update the score of the player ID
                         MapWithoutPoint = {SetMapVal Map Pos.x Pos.y 0}
 
@@ -269,6 +270,7 @@ in
                             ID2 SpawnPosition
                         in
                             {Send PortH spawn(ID2 SpawnPosition)}
+                            {Wait ID2}
                             {Send WindowPort movePlayer(ID2 SpawnPosition)}
                             {Send WindowPort spawnFire(FirePosition)}
                             {Send WindowPort lifeUpdate(ID2 NewLife)}
