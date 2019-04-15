@@ -151,13 +151,14 @@ in
                             {TurnByTurn MapWithoutPoint PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
                         end
                     elseif (CheckPosition == bonusfloot) then 
-                        Result Rand 
+                        Rand 
                     in
-                        Rand = {OS.rand} + 1 mod 2
+                        Rand = ({OS.rand} + 1) mod 2
                         if Rand == 0 then % We give 10 points to the player
-                            MapWithoutBonus
+                            Result MapWithoutBonus
                         in
                             {Send PortH add(point 10 Result)}
+                            {Wait Result}
                             {Send WindowPort hideBonus(Pos)}
                             {Send WindowPort scoreUpdate(IDAction Result)}
                             MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
@@ -169,8 +170,8 @@ in
                                 PlayersPositionNextEnd = Pos|NextEnd2
                                 {TurnByTurn MapWithoutBonus PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
                             end
-                        elseif Rand == 1 then % We give an additionnal bomb
-                            MapWithoutBonus
+                        else % We give an additionnal bomb
+                            Result MapWithoutBonus
                         in
                             {Send PortH add(bomb 1 Result)}
                             {Send WindowPort hideBonus(Pos)}
