@@ -17,7 +17,7 @@ in
       [] player001random then {Player001random.portPlayer ID}
       %% Add here the pattern to recognize the name used in the 
       %% input file and launch the portPlayer function from the functor
-      %%[] player000name then {Player000name.portPlayer ID}
+      [] player000name then {Player000name.portPlayer ID}
       else
          raise 
             unknownedPlayer('Player not recognized by the PlayerManager '#Kind)

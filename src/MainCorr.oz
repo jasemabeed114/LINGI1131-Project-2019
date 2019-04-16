@@ -122,15 +122,16 @@ in
             ID State
         in
             {Send PortH getState(ID State)}
-
+            {Wait ID}
             if State == on then % Still on the map
-                IDAction Action
+                Action
             in
-                {Send PortH doaction(IDAction Action)}
+                {Send PortH doaction(_ Action)}
                 case Action of move(Pos) then
                     NextEnd2
                     CheckPosition
                 in
+                    {Wait Pos}
                     {Send WindowPort movePlayer(ID Pos)} % Move the player on the screen
                     {InformationPlayers PlayersPortTail info(movePlayer(ID Pos))}
                     CheckPosition = {CheckMove Pos.x Pos.y Map}
@@ -140,7 +141,7 @@ in
                         {Send PortH add(point 1 Result)} % Gives the point and ask the result
                         {Send WindowPort hidePoint(Pos)} % Hides the point from the screen
                         {Wait Result}
-                        {Send WindowPort scoreUpdate(IDAction Result)} % Update the score of the player ID
+                        {Send WindowPort scoreUpdate(ID Result)} % Update the score of the player ID
                         MapWithoutPoint = {SetMapVal Map Pos.x Pos.y 0}
 
                         if Result >= 50 then % The player has 50 points or more, he wins
@@ -160,7 +161,7 @@ in
                             {Send PortH add(point 10 Result)}
                             {Wait Result}
                             {Send WindowPort hideBonus(Pos)}
-                            {Send WindowPort scoreUpdate(IDAction Result)}
+                            {Send WindowPort scoreUpdate(ID Result)}
                             MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
 
                             if Result >= 50 then % The player has 50 points or more, he wins
@@ -262,6 +263,7 @@ in
                     {Send PortH gotHit(ID Result)}
                     {Wait Result}
                     % Potentially send an information
+                    {Wait ID}
                     case Result of death(NewLife) then % Was on the board
                         %{Delay 4000}
                         %{Browser.browse iciCACACCDC#NewLife}
@@ -272,14 +274,15 @@ in
                             {Send WindowPort lifeUpdate(ID NewLife)}
                             {ProcessDeath FirePosition PortT PosT}
                         else % Still has lifes
-                            ID2 SpawnPosition
+                            SpawnPosition SState
                         in
-                            {Send PortH spawn(ID2 SpawnPosition)}
-                            {Wait ID2}
-                            {Send WindowPort movePlayer(ID2 SpawnPosition)}
+                            {Send PortH spawn(_ SpawnPosition)}
+                            {Send WindowPort movePlayer(ID SpawnPosition)}
                             {Send WindowPort spawnFire(FirePosition)}
-                            {Send WindowPort lifeUpdate(ID2 NewLife)}
-                            {InformationPlayers PlayersPort info(spawnPlayer(ID2 SpawnPosition))}
+                            {Send WindowPort lifeUpdate(ID NewLife)}
+                            {Send PortH getState(_ SState)}
+                            {Wait SState}
+                            {InformationPlayers PlayersPort info(spawnPlayer(ID SpawnPosition))}
 
                             %% Recursion
                             {ProcessDeath FirePosition PortT PosT}
