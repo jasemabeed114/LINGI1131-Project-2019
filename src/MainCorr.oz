@@ -15,6 +15,7 @@ define
    DisableFirePreviousTurn
    SetMapVal
    MapChange
+   MapChangeAdvanced
    CheckMove
    InformationPlayers
    PropagationFire
@@ -103,7 +104,6 @@ in
             NewFiresPort = {NewPort NewFires}
             %% Process here the explosion and the rest
             {ProcessBombs Bombs NewBombs PlayersPositionNext NewFiresPort Map ?MapAfterExplosions}
-
             %% Check if the game is over after the new explosions
             {CheckEndGame ResultEndGame WinnerEndGame}
             if ResultEndGame == true then % End of game
@@ -115,7 +115,7 @@ in
                 end
             else
                 %% Recursion back to the beginning
-                {Delay 200}
+                {Delay 500}
                 {TurnByTurn MapAfterExplosions PlayersPort PlayersPositionNext FutureNext FutureNext NewBombs NewFires}
             end
         [] (PortH|PortT)#(PositionH|PositionT) then
@@ -260,8 +260,12 @@ in
                     ID Result
                 in
                     {Send PortH gotHit(ID Result)}
+                    {Wait Result}
                     % Potentially send an information
                     case Result of death(NewLife) then % Was on the board
+                        %{Delay 4000}
+                        %{Browser.browse iciCACACCDC#NewLife}
+                        %{Delay 3000}
                         if NewLife == 0 then % Dead player
                             {InformationPlayers PlayersPort info(deadPlayer(ID))}
                             {Send WindowPort hidePlayer(ID)}
@@ -338,10 +342,13 @@ in
         {Send WindowPort spawnFire(Pos)}
         {Send NewFiresPort Pos}
         case Pos of pt(x:X y:Y) then
+            C1
+        in
             thread % Also for the place where the bomb was
                 {Send WindowPort spawnFire(Pos)}
                 {Send NewFiresPort Pos}
                 {ProcessDeath Pos PlayersPort PlayPosition}
+                C1 = 1
             end
             thread {PropagationOneDirection pt(x:X+1 y:Y) Pos 0 Right} end % Right
             thread {PropagationOneDirection pt(x:X-1 y:Y) Pos 0 Left} end % Left
@@ -349,9 +356,11 @@ in
             thread {PropagationOneDirection pt(x:X y:Y-1) Pos 0 Top} end % Top
             
             {Wait Top} {Wait Bottom} {Wait Left} {Wait Right} % Wait for the instruction bellow
-            MapChanges = changes(Top Bottom Left Right)
+            {Wait C1}
+            MapChanges = changes(Top Left Right Bottom)
             % The case where the fire exploded must have been a floor tile
 
+            %MapReturn = {MapChangeAdvanced Map MapChanges 1 1}
             MapReturn = {MapChange Map MapChanges}
             
             % Enregistrement 1:Haut 2:Bas 3:Gauche 4:Droite
@@ -437,6 +446,28 @@ in
             Map
         end
     end
+
+    fun{MapChangeAdvanced Map Changes Y Count}
+        fun{LignProcess Lign Count ?FinalCount}
+            case Lign of nil then FinalCount = Count nil
+            [] X|T then
+                if Y == ((Changes.Count).1).y andthen ((Changes.Count).1).x == X then % The change is here
+                    (Changes.Count).2|{LignProcess T Count+1 FinalCount}
+                else
+                    {LignProcess T Count ?FinalCount}
+                end
+            end
+        end
+    in
+        case Map of H|T then % Process a lign
+            NewCount
+        in
+            {LignProcess H Count NewCount}|{MapChangeAdvanced T Changes Y+1 NewCount}
+        [] nil then nil
+        end
+    end
+            
+
 
     % Check if the game is over
     % Result bound to true if the game is over
