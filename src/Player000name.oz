@@ -61,16 +61,11 @@ in
          end
       [] info(Message)|T then
          case Message
-         of deadPlayer(IDD) then
-            if (IDD == ID) then {TreatStream T off Position Points NbBomb NbLife Point Map} end
+         of deadPlayer(IDD) then skip
          [] spawnPlayer(ID Pos) then skip
          [] movePlayer(ID Pos) then skip
-         [] deadPlayer(ID) then skip
          [] bombPlanted(Pos) then skip
-         [] bombExploded(Pos) then
-            if({IdDead Position Pos}) 
-            then {TreatStream T off Position Points NbBomb NbLife Point Map}
-            end
+         [] bombExploded(Pos) then skip
          [] boxRemoved(Pos) then 
             {TreatStream T State Position Points NbBomb NbLife Point {SetMapVal Map Pos.x Pos.y 0}}
          end
