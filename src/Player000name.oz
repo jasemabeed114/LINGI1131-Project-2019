@@ -13,12 +13,11 @@ define
    Row
    Column
    CheckMove
-   IdDead
    Map
    SpawnPos
    ID
    SetMapVal
-
+   MakeAMove
 in
    Map = Input.map
    Row = Input.nbRow
@@ -91,41 +90,8 @@ in
                {TreatStream T State Position Points NbBomb NbLife Point Map}
             end
          else
-            P2 in
-            P2 = ({OS.rand} + 1) mod 4
-            if P2 == 0 then
-               if {CheckMove Position.x+1 Position.y Map} then
-                  Action = move(pt(x:Position.x+1 y:Position.y))
-                  {TreatStream T State Action.1 Points NbBomb NbLife Point Map}
-               else
-                  Action = move(pt(x:Position.x y:Position.y))
-                  {TreatStream T State Action.1 Points NbBomb NbLife Point Map}
-               end
-            elseif P2 == 1 then
-               if {CheckMove Position.x-1 Position.y Map} then
-                  Action = move(pt(x:Position.x-1 y:Position.y))
-                  {TreatStream T State Action.1 Points NbBomb NbLife Point Map}
-               else
-                  Action = move(pt(x:Position.x y:Position.y))
-                  {TreatStream T State Action.1 Points NbBomb NbLife Point Map}
-               end
-            elseif P2 == 2 then
-               if {CheckMove Position.x Position.y+1 Map} then
-                  Action = move(pt(x:Position.x y:Position.y+1))
-                  {TreatStream T State Action.1 Points NbBomb NbLife Point Map}
-               else
-                  Action = move(pt(x:Position.x y:Position.y))
-                  {TreatStream T State Action.1 Points NbBomb NbLife Point Map}
-               end
-            elseif P2 == 3 then
-               if {CheckMove Position.x Position.y-1 Map} then
-                  Action = move(pt(x:Position.x y:Position.y-1))
-                  {TreatStream T State Action.1 Points NbBomb NbLife Point Map}
-               else
-                  Action = move(pt(x:Position.x y:Position.y))
-                  {TreatStream T State Action.1 Points NbBomb NbLife Point Map}
-               end
-            end
+            Action = {MakeAMove Position Map}
+            {TreatStream T State Action.1 Points NbBomb NbLife Point Map}
          end
       end
    end
@@ -148,15 +114,57 @@ in
       end
    end
    
-
-   fun{IdDead PosPlayer PosBomb}
-      case PosPlayer#PosBomb
-      of pt(x:XP y:YP)#pt(x:XB y:YB) then
-         if (XP - XB =< Input.fire) then true
-         elseif (XB - XP =< Input.fire) then true
-         elseif (YP - YB =< Input.fire) then true
-         elseif (YB - YP =< Input.fire) then true
-         else false
+   fun{MakeAMove Position Map}
+      P2
+   in
+      P2 = ({OS.rand} + 1) mod 4
+      if P2 == 0 then
+         if {CheckMove Position.x+1 Position.y Map} then
+            move(pt(x:Position.x+1 y:Position.y))
+         elseif {CheckMove Position.x-1 Position.y Map} then
+            move(pt(x:Position.x-1 y:Position.y))
+         elseif {CheckMove Position.x Position.y+1 Map} then
+            move(pt(x:Position.x y:Position.y+1))
+         elseif {CheckMove Position.x Position.y-1 Map} then
+            move(pt(x:Position.x y:Position.y-1))
+         else
+            move(pt(x:Position.x y:Position.y))
+         end
+      elseif P2 == 1 then
+         if {CheckMove Position.x-1 Position.y Map} then
+            move(pt(x:Position.x-1 y:Position.y))
+         elseif {CheckMove Position.x+1 Position.y Map} then
+            move(pt(x:Position.x+1 y:Position.y))
+         elseif {CheckMove Position.x Position.y+1 Map} then
+            move(pt(x:Position.x y:Position.y+1))
+         elseif {CheckMove Position.x Position.y-1 Map} then
+            move(pt(x:Position.x y:Position.y-1))
+         else
+            move(pt(x:Position.x y:Position.y))
+         end
+      elseif P2 == 2 then
+         if {CheckMove Position.x Position.y+1 Map} then
+            move(pt(x:Position.x y:Position.y+1))
+         elseif {CheckMove Position.x Position.y-1 Map} then
+            move(pt(x:Position.x y:Position.y-1))
+         elseif {CheckMove Position.x+1 Position.y Map} then
+            move(pt(x:Position.x+1 y:Position.y))
+         elseif {CheckMove Position.x-1 Position.y Map} then
+            move(pt(x:Position.x-1 y:Position.y))
+         else
+            move(pt(x:Position.x y:Position.y))
+         end
+      elseif P2 == 3 then
+         if {CheckMove Position.x Position.y-1 Map} then
+            move(pt(x:Position.x y:Position.y-1))
+         elseif {CheckMove Position.x Position.y+1 Map} then
+            move(pt(x:Position.x y:Position.y+1))
+         elseif {CheckMove Position.x+1 Position.y Map} then
+            move(pt(x:Position.x+1 y:Position.y))
+         elseif {CheckMove Position.x-1 Position.y Map} then
+            move(pt(x:Position.x-1 y:Position.y))
+         else
+            move(pt(x:Position.x y:Position.y))
          end
       end
    end
