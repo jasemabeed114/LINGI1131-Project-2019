@@ -33,30 +33,32 @@ in
       {NewPort Stream Port}
       thread Pos in 
       IDD = ID
-      {TreatStream OutputStream on null 0 Input.nbBombs Input.nbLives 0 Map}
+      {TreatStream OutputStream on null 0 Input.nbBombs Input.nbLives Map}
       end
       Port
    end
 
    
-   proc{TreatStream Stream State Position Points NbBomb NbLife Point Map} %% TODO you may add some arguments if needed
+   proc{TreatStream Stream State Position Points NbBomb NbLife Map} %% TODO you may add some arguments if needed
       case Stream 
-      of getId(IDD)|T then IDD = ID {TreatStream T State Position Points NbBomb NbLife Point Map}
-      [] getState(IDD SState)|T then IDD = ID SState = State {TreatStream T State Position Points NbBomb NbLife Point Map}
+      of getId(IDD)|T then IDD = ID {TreatStream T State Position Points NbBomb NbLife Map}
+      [] getState(IDD SState)|T then IDD = ID SState = State {TreatStream T State Position Points NbBomb NbLife Map}
       [] assignSpawn(Pos)|T then
          SpawnPos = Pos
-         {TreatStream T State Pos Points NbBomb NbLife Point Map}
+         {TreatStream T State Pos Points NbBomb NbLife Map}
       [] spawn(IDD Pos)|T then
          IDD = ID
          Pos = SpawnPos
-         {TreatStream T on Position Points NbBomb NbLife Point Map}
-      [] position(Pos)|T then Pos = Position {TreatStream T State Position Points NbBomb NbLife Point Map}
+         {TreatStream T on Position Points NbBomb NbLife Map}
+      [] position(Pos)|T then Pos = Position {TreatStream T State Position Points NbBomb NbLife Map}
       [] add(Type Option Result)|T then
          case Type
          of bomb then Result = NbBomb + Option
-            {TreatStream T State Position Points Result NbLife Point Map}
+            {TreatStream T State Position Points Result NbLife Map}
          [] point then Result = Points + Option
-            {TreatStream T State Position Result NbBomb NbLife Result Map}
+            {TreatStream T State Position Result NbBomb NbLife Map}
+         [] life then Result = NbLife + Option
+            {TreatStream T State Position Points NbBomb Result Map}
          end
       [] info(Message)|T then
          case Message
@@ -66,16 +68,16 @@ in
          [] bombPlanted(Pos) then skip
          [] bombExploded(Pos) then skip
          [] boxRemoved(Pos) then 
-            {TreatStream T State Position Points NbBomb NbLife Point {SetMapVal Map Pos.x Pos.y 0}}
+            {TreatStream T State Position Points NbBomb NbLife {SetMapVal Map Pos.x Pos.y 0}}
          end
-         {TreatStream T State Position Points NbBomb NbLife Point Map}
+         {TreatStream T State Position Points NbBomb NbLife Map}
       [] gotHit(IDD Result)|T then
          IDD = ID
          Result = death(NbLife-1)
          if NbLife-1 > 0 then
-            {TreatStream T on SpawnPos Points NbBomb NbLife-1 Point Map}
+            {TreatStream T on SpawnPos Points NbBomb NbLife-1 Map}
          else
-            {TreatStream T off SpawnPos Points NbBomb 0 Point Map}
+            {TreatStream T off SpawnPos Points NbBomb 0 Map}
          end
       [] doaction(IDD Action)|T then
          Prob in
@@ -84,14 +86,14 @@ in
          if Prob == 5 then 
             if NbBomb > 0 then
                Action = bomb(Position)
-               {TreatStream T State Position Points NbBomb-1 NbLife Point Map}
+               {TreatStream T State Position Points NbBomb-1 NbLife Map}
             else
                Action = null
-               {TreatStream T State Position Points NbBomb NbLife Point Map}
+               {TreatStream T State Position Points NbBomb NbLife Map}
             end
          else
             Action = {MakeAMove Position Map}
-            {TreatStream T State Action.1 Points NbBomb NbLife Point Map}
+            {TreatStream T State Action.1 Points NbBomb NbLife Map}
          end
       end
    end

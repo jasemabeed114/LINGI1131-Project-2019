@@ -154,32 +154,72 @@ in
                     elseif (CheckPosition == bonusfloot) then 
                         Rand 
                     in
-                        Rand = ({OS.rand} + 1) mod 2
-                        if Rand == 0 then % We give 10 points to the player
-                            Result MapWithoutBonus
-                        in
-                            {Send PortH add(point 10 Result)}
-                            {Wait Result}
-                            {Send WindowPort hideBonus(Pos)}
-                            {Send WindowPort scoreUpdate(ID Result)}
-                            MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
+                        if(Input.useExtention) then
+                            Rand = ({OS.rand} + 1) mod 3
+                            if Rand == 0 then % We give 10 points to the player
+                                Result MapWithoutBonus
+                            in
+                                {Send PortH add(point 10 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Wait Result}
+                                {Send WindowPort scoreUpdate(ID Result)}
+                                    MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
 
-                            if Result >= 50 then % The player has 50 points or more, he wins
-                                {Send WindowPort displayWinner(ID)}
-                            else % The player doesn't win, we continue the recursion
+                                if Result >= 50 then % The player has 50 points or more, he wins
+                                    {Send WindowPort displayWinner(ID)}
+                                else % The player doesn't win, we continue the recursion
+                                    %% Recursion
+                                    PlayersPositionNextEnd = Pos|NextEnd2
+                                    {TurnByTurn MapWithoutBonus PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
+                                end
+                            elseif Rand==1 then % We give an additionnal bomb
+                                Result MapWithoutBonus
+                            in
+                                {Send PortH add(bomb 1 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
+                                %% Recursion
+                                PlayersPositionNextEnd = Pos|NextEnd2
+                                {TurnByTurn MapWithoutBonus PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
+                            else
+                                Result MapWithoutBonus
+                            in
+                                {Send PortH add(life 1 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Wait Result}
+                                {Send WindowPort lifeUpdate(ID Result)}
+                                MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
                                 %% Recursion
                                 PlayersPositionNextEnd = Pos|NextEnd2
                                 {TurnByTurn MapWithoutBonus PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
                             end
-                        else % We give an additionnal bomb
-                            Result MapWithoutBonus
-                        in
-                            {Send PortH add(bomb 1 Result)}
-                            {Send WindowPort hideBonus(Pos)}
-                            MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
-                            %% Recursion
-                            PlayersPositionNextEnd = Pos|NextEnd2
-                            {TurnByTurn MapWithoutBonus PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
+                        else %No special extention
+                            Rand = ({OS.rand} + 1) mod 2
+                            if Rand == 0 then % We give 10 points to the player
+                                Result MapWithoutBonus
+                            in
+                                {Send PortH add(point 10 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Wait Result}
+                                {Send WindowPort scoreUpdate(ID Result)}
+                                    MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
+                                if Result >= 50 then % The player has 50 points or more, he wins
+                                    {Send WindowPort displayWinner(ID)}
+                                else % The player doesn't win, we continue the recursion
+                                    %% Recursion
+                                    PlayersPositionNextEnd = Pos|NextEnd2
+                                    {TurnByTurn MapWithoutBonus PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
+                                end
+                            else % We give an additionnal bomb
+                                Result MapWithoutBonus
+                            in
+                                {Send PortH add(bomb 1 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0}
+                                %% Recursion
+                                PlayersPositionNextEnd = Pos|NextEnd2
+                                {TurnByTurn MapWithoutBonus PortT PositionT PlayersPositionNext NextEnd2 Bombs Fires}
+                            end
                         end
                     else
                         %% Recursion
