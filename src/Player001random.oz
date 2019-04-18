@@ -10,6 +10,7 @@ define
    StartPlayer
    TreatStream
    SetMapVal
+   SetMapValWithValue
    CreateMove
    CreateMoveAdvanced
    CheckMove
@@ -121,8 +122,11 @@ in
                 {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap Bombes}
             else
                 ActionDo
+                MapBombExploded
+                BombsExploded
             in
-                {CreateMoveAdvanced MyMap MyPosition.x MyPosition.y MyBonuses.bomb ActionDo}
+                BombsExploded = {CheckBombsExploded MyBombs MyMap MapBombExploded} % Check to delete the exploded bombs from the map
+                {CreateMoveAdvanced MapBombExploded MyPosition.x MyPosition.y MyBonuses.bomb ActionDo}
                 ID = MyID
                 case ActionDo of bomb(Pos) then
                     NewBonuses NewMap NewMap2 NewBombes
@@ -234,6 +238,59 @@ in
                 H|{SetMapVal T X Y-1 Val}
             end
         end
+    end
+
+    fun{SetMapValBombPlanted Map X Y}
+        fun{Modif L N}
+            case L of nil then nil
+            [] H|T then
+                if N == 1 then 
+                    (H + 20)|T
+                else H|{Modif T N-1}
+                end
+            end
+        end
+    in
+        case Map of nil then nil
+        [] H|T then
+            if Y == 1 then
+                {Modif H X}|T
+            else
+                H|{SetMapValBombPlanted T X Y-1}
+            end
+        end
+    end
+
+    fun{SetMapValBombExploded Map X Y}
+        fun{Modif L N}
+            case L of nil then nil
+            [] H|T then
+                if N == 1 then 
+                    (H - 20)|T
+                else H|{Modif T N-1}
+                end
+            end
+        end
+    in
+        case Map of nil then nil
+        [] H|T then
+            if Y == 1 then
+                {Modif H X}|T
+            else
+                H|{SetMapValBombExploded T X Y-1}
+            end
+        end
+    end
+
+    fun{GetMapVal Map X Y}
+        fun{Nth L N}
+            if N == 1 then L.1
+            else
+                {Nth L.2 N-1}
+            end
+        end
+    in
+        {Nth {Nth Map Y} X}
     end
 
     proc{CreateMove Map X Y NbBombs ?Action}
@@ -364,6 +421,21 @@ in
             false
         end
     end
+
+    fun{CheckBombsExploded TheBombs TheMap MapReturn}
+        case TheBombs of nil then MapReturn = TheMap nil
+        [] (Position#Timer)|T then
+            if Timer == 0 then % Bomb has exploded
+                NewMap
+            in
+                NewMap = {SetMapValBombExploded TheMap Position.x Position.y}
+                {CheckBombsExploded T NewMap MapReturn}
+            else
+                (Position#(Timer-1))|{CheckBombsExploded T TheMap MapReturn}
+            end
+        end
+    end
+
 
 
 end
