@@ -3,7 +3,6 @@ import
    Player000name
    Player000bomber
    Player001random
-   Browser
    %% Add here the name of the functor of a player
    %% Player000name
 export
