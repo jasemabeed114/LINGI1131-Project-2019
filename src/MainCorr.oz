@@ -28,17 +28,31 @@ define
    PlayersPosition % Port of all the players
    PlayersPort  % Initial position of all the players
 
-   Simultaneous
-   SimultaneousInitLoop
-   PropagationFireSimult
-   EventHandler
-   ChangePositions
-   EventPort
-   EventStream
+   
    TimeFireDisplay
+   SimultaneousInitLoop
+   APlayer
+   MapHandler
+   MapPort
+   MapStream
+   BombHandler
+   BombPort
+   BombStream
+   PositionsHandler
+   PositionPort
+   PositionStream
+
+   ForceEndGame
+   PropagationFireSimult
+   GetMapVal
+
 in
 
    Map = Input.map
+
+   %%%%%% Simultaneous %%%%%%%
+   TimeFireDisplay = 1000
+
 
    %% Implement your controller here
    WindowPort = {GUI.portWindow} % Cree le port pour la window
@@ -61,9 +75,14 @@ in
    else
         thread
             {InitPlayersSpawnInformation PlayersPort PlayersPosition}
+            BombPort = {NewPort BombStream}
+            MapPort = {NewPort MapStream}
+            PositionPort = {NewPort PositionStream}
+
+            thread {BombHandler BombStream} end
+            thread {MapHandler MapStream Map} end
+            thread {PositionsHandler PositionStream PlayersPosition} end
             {SimultaneousInitLoop PlayersPort}
-            EventPort = {NewPort EventStream}
-            {EventHandler EventStream Map PlayersPosition nil}
         end
    end
     proc{InitPlayersSpawnInformation PlayerPort PlayersPosition}
@@ -473,6 +492,16 @@ in
         end
     end
 
+    fun{GetMapVal Map X Y}
+        fun{Nth L N}
+            if N == 1 then L.1
+            else {Nth L.2 N-1}
+            end
+        end
+    in
+        {Nth {Nth Map Y} X}
+    end
+
     fun{MapChange Map Changes}
         MapTop
         MapBottom
@@ -567,221 +596,251 @@ in
 
     proc{SimultaneousInitLoop PlayersPort}
         case PlayersPort of H|T then
-            thread {Simultaneous H} end
+            thread {APlayer H} end
             {SimultaneousInitLoop T}
         [] nil then skip
         end
     end
 
-    proc{Simultaneous H}
-        State ID
-        Action
-        TimeWait
-    in
-        TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
-        {Delay 300} % Delay to see what happens
-        {Send H getState(ID State)}
-        {Wait ID}
-        if State == on then % Should not be necessary but we use it 
-            {Send H doaction(_ Action)}
-            case Action of bomb(Pos) then
-                {Send WindowPort spawnBomb(Pos)}
-                {InformationPlayers PlayersPort info(bombPlanted(Pos))}
-                thread
-                    TimingBomb
-                in
-                    TimingBomb = ({OS.rand} mod (Input.timingBombMax - Input.timingBombMin)) + Input.timingBombMin
-                    {Delay TimingBomb} % Simulate the bomb waiting
-                    % Now the bomb has to explode but it will be done in the EventHandler
-                    {Send EventPort ID#H#bombExplode(Pos)}
+    proc{APlayer MyPort}
+        proc{Loop}
+            TimeWait
+            ID State
+        in
+            %TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
+            TimeWait = 500
+            {Delay TimeWait}
+            {Send MyPort getState(ID State)}
+            if State == on then % On the board
+                Action
+                TheMap
+                Value
+            in
+                {Send MyPort doaction(_ Action)}
+                case Action of move(Pos) then
+                    {Send WindowPort movePlayer(ID Pos)}
+                    {Send PositionPort modif(ID#Pos)}
+                    thread {InformationPlayers PlayersPort info(movePlayer(ID Pos))} end
+
+                    % Now check if it has a bonus
+                    {Send MapPort get(TheMap)}
+                    Value = {CheckMove Pos.x Pos.y TheMap}
+                    if Value == pointfloor then % Point bonus
+                        Result
+                    in
+                        {Send MyPort add(point 1 Result)} % Give the point to the player
+                        {Send WindowPort hidePoint(Pos)}
+                        {Wait Result}
+                        {Send WindowPort scoreUpdate(ID Result)}
+                        {Send MapPort modif(Pos#0)}
+
+                        if Result >= 50 then % The player has won
+                            {Send WindowPort displayWinner(ID)}
+                            {ForceEndGame}
+                        else
+                            {Loop}
+                        end
+                    elseif Value == bonusfloot then % Bonus, random
+                        Rand
+                    in
+                        Rand = ({OS.rand} mod 2) + 1
+                        if Rand == 1 then % We give 10 points of bonus
+                            Result
+                        in
+                            {Send MyPort add(point 10 Result)}
+                            {Send WindowPort hideBonus(Pos)}
+                            {Wait Result}
+                            {Send WindowPort scoreUpdate(ID Result)}
+                            {Send MapPort modif(Pos#0)}
+                            if Result >= 50 then % The player has won
+                                {Send WindowPort displayWinner(ID Result)}
+                                {ForceEndGame}
+                            else
+                                {Loop}
+                            end
+                        else % This is a bomb
+                            Result
+                        in
+                            {Send MyPort add(bomb 1 Result)}
+                            {Send WindowPort hideBonus(Pos)}
+                            {Send MapPort modif(Pos#0)}
+                            {Loop}
+                        end
+                    else
+                        {Loop}
+                    end
+                [] bomb(Pos) then % Drops a bomb
+                    {Send WindowPort spawnBomb(Pos)}
+                    thread {InformationPlayers PlayersPort info(bombPlanted(Pos))} end
+                    thread 
+                        TimingBomb
+                    in
+                        TimingBomb = ({OS.rand} mod (Input.timingBombMax - Input.timingBombMin)) + Input.timingBombMin
+                        {Delay TimingBomb}
+                        {Send BombPort bombExplode(Pos)}
+                        {Send MyPort add(bomb 1 _)}
+                    end
+                    {Loop}
+                else
+                    % null because it was off
+                    {Loop}
                 end
-                % dans thread
-                % afficher la bombe
-                % envoyer information
-                % delais
-                % envoyer a l'evenementiel que la bombe doit exploser
-                % recursion
-            [] move(Pos) then
-                {Send WindowPort movePlayer(ID Pos)} % Move the player on the window
-                thread {InformationPlayers PlayersPort info(movePlayer(ID Pos))} end % inform other players
-                {Send EventPort ID#H#move(Pos)} % Send to the EventHandler the move
-                % bouge a l'ecran
-                % envoie information joueurs
-                % envoie a l'evenementiel le deplacement
             else
-                skip
+                %{Delay Input.thinkMax}
+                {Loop}
             end
-            {Simultaneous H}
-        else
-            skip
+        end
+    in
+        {Loop}
+    end
+
+
+
+    proc{PositionsHandler Stream Positions}
+        fun{ChangePositions ThePositions ID Pos}
+            fun{Loop L Count}
+                case L of nil then nil
+                [] H|T then
+                    if Count == ID.id then % the player
+                        Pos|T
+                    else
+                        H|{Loop T Count-1}
+                    end
+                end
+            end
+        in
+            {Loop ThePositions Input.nbBombers}
+        end
+    %%%%%%%%%%%%%%%%%%%
+    in
+        case Stream of Message|T then
+            case Message of modif(ID#Pos) then 
+                % The ID of the player starts at Input.nbBombers
+                NewPositions
+            in
+                NewPositions = {ChangePositions Positions ID Pos}
+                {PositionsHandler T NewPositions}
+            [] get(PositionsGetter) then % Wants to get the positions
+                PositionsGetter = Positions % We bind it to the positions
+                {PositionsHandler T Positions}
+            else
+                {Browser.browse errorPositionsHandler}
+            end
         end
     end
 
-    proc{EventHandler TheStream TheMap ThePositions TheBombs}
-        case TheStream of Event|T then
-            case Event of ID#H#move(Pos) then % The player has changed his position
-                NewPositions
-                CheckPosition
-            in
-                NewPositions = {ChangePositions ThePositions ID Pos} % Update of the position
-                CheckPosition = {CheckMove Pos.x Pos.y TheMap}
-                if CheckPosition == pointfloor then % The player is on a point tile
-                    Result MapWithoutPoint
-                in
-                    {Send H add(point 1 Result)} % Gives the point and ask the result
-                    {Send WindowPort hidePoint(Pos)} % Hides the point from the screen
-                    {Wait Result}
-                    {Send WindowPort scoreUpdate(ID Result)} % Update the score of the player ID
-                    thread MapWithoutPoint = {SetMapVal TheMap Pos.x Pos.y 0} end
-
-                    if Result >= 50 then % The player has 50 points or more, he wins
-                        {Send WindowPort displayWinner(ID)} % Display the winner
-                    else % The player doesn't win, we continue
-                        %% Recursion
-                        {EventHandler T MapWithoutPoint NewPositions TheBombs}
+    proc{MapHandler Stream Map}
+        fun{SetMapVal Map X Y Value}
+            fun{Modif L N Value}
+                case L of nil then nil
+                [] H|T then
+                    if N == 1 then Value|T
+                    else H|{Modif T N-1 Value}
                     end
-                elseif CheckPosition == bonusfloot then % Bonus, random + give + check end
-                    Rand
-                in
-                    Rand = ({OS.rand} + 1) mod 2
-                    if Rand == 0 then % We give 10 points to the player
-                        Result MapWithoutBonus
-                    in
-                        {Send H add(point 10 Result)}
-                        {Send WindowPort hideBonus(Pos)}
-                        {Wait Result}
-                        {Send WindowPort scoreUpdate(ID Result)}
-                        thread MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0} end
-                        if Result >= 50 then % The player has 50 points or more, he wins
-                            {Send WindowPort displayWinner(ID)}
-                        else % The player doesn't win, we continue the recursion
-                            %% Recursion
-                            {EventHandler T MapWithoutBonus NewPositions TheBombs}
-                        end
-                    else % We give an additionnal bomb
-                        Result MapWithoutBonus
-                    in
-                        {Send H add(bomb 1 Result)}
-                        {Send WindowPort hideBonus(Pos)}
-                        thread MapWithoutBonus = {SetMapVal Map Pos.x Pos.y 0} end
-                        %% Recursion
-                        {EventHandler T MapWithoutBonus NewPositions TheBombs}
-                    end
-                else
-                    {EventHandler T TheMap NewPositions TheBombs}
                 end
-                % Change the position in ThePositions
-                % Check for bonuses/points
-                % Check Endgame
-                % Recursive call
-            [] ID#H#bombExplode(Pos) then % The bomb has to explode now
-                MapAfterExplosions
-                PositionsAfterExplosions
-                ResultEndGame WinnerEndGame
+            end
+        in
+            case Map of nil then nil
+            [] H|T then
+                if Y == 1 then
+                    {Modif H X Value}|T
+                else
+                    H|{SetMapVal T X Y-1 Value}
+                end
+            end
+        end
+    %%%%%%%%%%%%%%%%%%%%
+    in
+        case Stream of Message|T then
+            case Message of modif(Pos#Value) then % Modif the map
+                NewMap
+            in
+                NewMap = {SetMapVal Map Pos.x Pos.y Value}
+                {MapHandler T NewMap}
+            [] get(MapGetter) then % Want to get the map
+                MapGetter = Map
+                {MapHandler T Map}
+            end
+        end
+    end
+
+    proc{BombHandler Stream}
+        case Stream of Message|T then
+            case Message of bombExplode(Pos) then
+                ResultEndGame
+                WinnerEndGame
+                TheMap
             in
                 {Send WindowPort hideBomb(Pos)}
-                {Send H add(bomb 1 _)}
-                {InformationPlayers PlayersPort info(bombExploded(Pos))} % Warn the other players of the bomb exploded
-                thread 
-                    {PropagationFireSimult Pos TheMap ThePositions PositionsAfterExplosions MapAfterExplosions}
-                    {CheckEndGame ResultEndGame WinnerEndGame} 
-                end
+                {InformationPlayers PlayersPort info(bombExploded(Pos))} % inform other
+                {Send MapPort get(TheMap)}
+                {PropagationFireSimult Pos TheMap}
+                {CheckEndGame ResultEndGame WinnerEndGame}
                 if ResultEndGame == true then % End of game
                     if WinnerEndGame == none then % No one won
                         {Browser.browse 'No one won'}
                     else
-                        {Send WindowPort displayWinner(WinnerEndGame)} % Give the ID of the Winner
+                        {Send WindowPort displayWinner(WinnerEndGame)}
+                        {ForceEndGame}
                     end
                 else
-                    %% Recursion back to the beginning
-                    %{Delay 500}
-                    {EventHandler T MapAfterExplosions PositionsAfterExplosions TheBombs}
+                    % Recursion
+                    {BombHandler T}
                 end
-
-                % Hide the bomb
-                % Give back the bomb
-                % Call PropagationFire
-                % Check EndGame
+            else
+                {Browser.browse errorBombHandler}
             end
         end
     end
 
-    TimeFireDisplay = 500
+    proc{PropagationFireSimult BombPosition TheMap}
 
-    fun{ChangePositions ThePositions ID Pos}
-        fun{Loop L Count}
-            case L of nil then nil
-            [] H|T then
-                if Count == ID.id then % the player
-                    Pos|T
-                else
-                    H|{Loop T Count-1}
-                end
-            end
-        end
-    in
-        {Loop ThePositions Input.nbBombers}
-    end
-
-    proc{PropagationFireSimult Pos Map PlayPosition ?PositionsReturn ?MapReturn}
-
-        fun{ProcessDeath FirePosition Ports PlayerPos NewPos}
-            case Ports#PlayerPos of nil#_ then NewPos % Process for each player
+        proc{ProcessDeath FirePosition PlayerPorts PlayersPosition}
+            case PlayerPorts#PlayersPosition of nil#_ then skip
             [] (PortH|PortT)#(PosH|PosT) then
-                if FirePosition.x == PosH.x andthen FirePosition.y == PosH.y then % The fire is at the location of the player
+                if FirePosition.x == PosH.x andthen FirePosition.y == PosH.y then
                     ID Result
                 in
                     {Send PortH gotHit(ID Result)}
                     {Wait Result}
-                    % Potentially send an information
-                    {Wait ID}
-                    case Result of death(NewLife) then % Was on the board
-                        %{Delay 4000}
-                        %{Browser.browse iciCACACCDC#NewLife}
-                        %{Delay 3000}
+                    case Result of death(NewLife) then % Was on board
                         if NewLife == 0 then % Dead player
-                            {InformationPlayers PlayersPort info(deadPlayer(ID))}
+                            thread {InformationPlayers PlayersPort info(deadPlayer(ID))} end
                             {Send WindowPort hidePlayer(ID)}
                             {Send WindowPort lifeUpdate(ID NewLife)}
-                            {ProcessDeath FirePosition PortT PosT NewPos}
-                        else % Still has lifes
-                            SpawnPosition SState NewPosAfter
+                            {ProcessDeath FirePosition PortT PosT}
+                        else % Stil has lives
+                            SpawnPosition Sstate
                         in
                             {Send PortH spawn(_ SpawnPosition)}
-                            NewPosAfter = {ChangePositions NewPos ID SpawnPosition}
-                            {Send EventPort ID#PortH#move(SpawnPosition)} % Warn the event handler of the move
+                            {Send PositionPort modif(ID#SpawnPosition)}
                             {Send WindowPort movePlayer(ID SpawnPosition)}
-                            {Send WindowPort spawnFire(FirePosition)}
                             {Send WindowPort lifeUpdate(ID NewLife)}
-                            {Send PortH getState(_ SState)}
-                            {Wait SState}
-                            {InformationPlayers PlayersPort info(spawnPlayer(ID SpawnPosition))}
+                            thread {InformationPlayers PlayersPort info(spawnPlayer(ID SpawnPosition))} end
 
-                            %% Recursion
-                            {ProcessDeath FirePosition PortT PosT NewPosAfter}
+                            % Recursion
+                            {ProcessDeath FirePosition PortT PosT}
                         end
-                    else % null meaning that the player is off the board
-                        {ProcessDeath FirePosition PortT PosT NewPos}
+                    else
+                        {ProcessDeath FirePosition PortT PosT}
                     end
-                else % Continue
-                    {ProcessDeath FirePosition PortT PosT NewPos}
+                else
+                    {ProcessDeath FirePosition PortT PosT}
                 end
             end
         end
 
-        proc{PropagationOneDirection CurrentPosition PreviousPosition Count NewPosAcc ?NewPosRet ?Changing}
+        proc{PropagationOneDirection CurrentPosition PreviousPosition Count}
             %{Delay 1000}
-            if Count >= Input.fire then Changing = null NewPosRet = NewPosAcc
+            if Count >= Input.fire then skip
             else
                 case CurrentPosition of pt(x:X y:Y) then
                     Check
                 in
-                    Check = {CheckMove X Y Map}
-                    if Check == wall then
+                    Check = {CheckMove X Y TheMap}
+                    if Check == wall then skip
                         % It is a wall
                         % Stop propaging and bounds Changing to null because nothing changes
-                        Changing = null
-                        NewPosRet = NewPosAcc
                     elseif Check == point then
                         % It is a point box
                         % Destroy the box and stop propaging
@@ -790,11 +849,10 @@ in
                             {Delay TimeFireDisplay}
                             {Send WindowPort hideFire(CurrentPosition)} % Hide the fire after a time
                         end
-                        {InformationPlayers PlayersPort info(boxRemoved(CurrentPosition))} % Warn other players
+                        thread {InformationPlayers PlayersPort info(boxRemoved(CurrentPosition))} end % Warn other players 
                         {Send WindowPort hideBox(CurrentPosition)} % Hides the box
                         {Send WindowPort spawnPoint(CurrentPosition)} % And shows the point
-                        Changing = CurrentPosition#5
-                        NewPosRet = NewPosAcc
+                        {Send MapPort modif(CurrentPosition#5)}
                     elseif Check == bonus then
                         % It is a bonus box
                         % Destroy the box and stop propaging
@@ -803,71 +861,69 @@ in
                             {Delay TimeFireDisplay}
                             {Send WindowPort hideFire(CurrentPosition)} % Hide the fire after a time
                         end
-                        {InformationPlayers PlayersPort info(boxRemoved(CurrentPosition))} % Warn other players
+                        thread {InformationPlayers PlayersPort info(boxRemoved(CurrentPosition))} end % Warn other players
                         {Send WindowPort hideBox(CurrentPosition)} % Hides the box
                         {Send WindowPort spawnBonus(CurrentPosition)} % And shows the bonus
-                        Changing = CurrentPosition#6
-                        NewPosRet = NewPosAcc
+                        {Send MapPort modif(CurrentPosition#6)}
                     else
-                        NewPosAfter
-                    in
                         % Either a floor tile, a point or a bonus
                         % For the time being, we let them in place
                         % Continue propaging, and sends the position of the fire
+                        PlayersMostRecentPositions
+                    in
                         thread 
                             {Send WindowPort spawnFire(CurrentPosition)} % Display the fire on the screen
                             {Delay TimeFireDisplay}
                             {Send WindowPort hideFire(CurrentPosition)} % Hide the fire after a time
                         end
-                        NewPosAfter = {ProcessDeath CurrentPosition PlayersPort PlayPosition NewPosAcc}
+                        {Send PositionPort get(PlayersMostRecentPositions)}
+                        {ProcessDeath CurrentPosition PlayersPort PlayersMostRecentPositions}
                         case PreviousPosition of pt(x:XP y:YP) then
                             XF YF 
                         in
                             XF = X + (X-XP) % New position X
                             YF = Y + (Y-YP) % New position Y
-                            Changing = {PropagationOneDirection pt(x:XF y:YF) CurrentPosition Count+1 NewPosAfter NewPosRet}
+                            {PropagationOneDirection pt(x:XF y:YF) CurrentPosition Count+1}
                         end
                     end
                 end
             end
         end
-        MapChanges Top Bottom Left Right
+        PlayerPositions
+        MapBeforeExplode
     in
-        case Pos of pt(x:X y:Y) then
-            C1
-            PlayerRight
-            PlayerLeft
-            PlayerTop
-            PlayerBottom
-            PlayerCentral
-        in
-            thread % Also for the place where the bomb was
-                thread 
-                    {Send WindowPort spawnFire(Pos)}
+        {Send PositionPort get(PlayerPositions)}
+        case BombPosition of pt(x:X y:Y) then
+            thread
+                thread
+                    {Send WindowPort spawnFire(BombPosition)}
                     {Delay TimeFireDisplay}
-                    {Send WindowPort hideFire(Pos)}
+                    {Send WindowPort hideFire(BombPosition)}
                 end
-                PlayerCentral = {ProcessDeath Pos PlayersPort PlayPosition PlayPosition}
-                C1 = 1
-                {PropagationOneDirection pt(x:X+1 y:Y) Pos 0 PlayerCentral PlayerRight Right} % Right
-                {PropagationOneDirection pt(x:X-1 y:Y) Pos 0 PlayerRight PlayerLeft Left} % Left
-                {PropagationOneDirection pt(x:X y:Y+1) Pos 0 PlayerLeft PlayerBottom Bottom} % Bottom
-                {PropagationOneDirection pt(x:X y:Y-1) Pos 0 PlayerBottom PlayerTop Top} % Top
+                {ProcessDeath BombPosition PlayersPort PlayerPositions}
+                {PropagationOneDirection pt(x:X+1 y:Y) BombPosition 0}
+                {PropagationOneDirection pt(x:X-1 y:Y) BombPosition 0}
+                {PropagationOneDirection pt(x:X y:Y+1) BombPosition 0}
+                {PropagationOneDirection pt(x:X y:Y-1) BombPosition 0}
             end
-            MapChanges = changes(Top Left Right Bottom)
-            % The case where the fire exploded must have been a floor tile
-
-            %MapReturn = {MapChangeAdvanced Map MapChanges 1 1}
-            MapReturn = {MapChange Map MapChanges}
-            PositionsReturn = PlayerTop
-            
-            % Enregistrement 1:Haut 2:Bas 3:Gauche 4:Droite
-            % chaque entree est position#value
-            % change toute la map en iterant sur ces valeurs
-            % Retourne la nouvelle map avec la propagation du feu
-            % Retourne aussi la liste des positions des feu
         end
+
     end
+
+    proc{ForceEndGame}
+        proc{Loop Ports}
+            case Ports of nil then skip
+            [] H|T then
+                {Send H gotHit(_ _)}
+                {Loop T}
+            end
+        end
+    in
+        {Loop PlayersPort}
+    end
+
+    
+
 
     
 
