@@ -20,6 +20,7 @@ define
    InformationPlayers
    PropagationFire
    CheckEndGame
+   CheckEndGameAdvanced
    
    
    Map
@@ -41,6 +42,8 @@ define
    PositionsHandler
    PositionPort
    PositionStream
+   EndGamePort
+   EndGameStream
 
    ForceEndGame
    PropagationFireSimult
@@ -74,27 +77,31 @@ in
       end
    else
         thread
-            {InitPlayersSpawnInformation PlayersPort PlayersPosition}
+            IDs
+        in
+            IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
             BombPort = {NewPort BombStream}
             MapPort = {NewPort MapStream}
             PositionPort = {NewPort PositionStream}
+            EndGamePort = {NewPort EndGameStream}
 
             thread {BombHandler BombStream} end
             thread {MapHandler MapStream Map} end
             thread {PositionsHandler PositionStream PlayersPosition} end
+            thread {CheckEndGameAdvanced EndGameStream IDs nil} end
             {SimultaneousInitLoop PlayersPort}
         end
    end
-    proc{InitPlayersSpawnInformation PlayerPort PlayersPosition}
+    fun{InitPlayersSpawnInformation PlayerPort PlayersPosition}
         case PlayerPort#PlayersPosition
-        of nil#nil then skip
+        of nil#nil then nil
         [](PortH|PortT)#(PositionH|PositionT) then 
             ID 
         in
             {Send PortH getId(ID)}
             {Wait ID}
             thread {InformationPlayers PlayerPort info(spawnPlayer(ID PositionH))} end
-            {InitPlayersSpawnInformation PortT PositionT}
+            ID|{InitPlayersSpawnInformation PortT PositionT}
         end
     end
     proc{InitPlayers NbPlayers ColorPlayers NamePlayers Positions PlayersPosition PlayersPort}
@@ -603,15 +610,25 @@ in
     end
 
     proc{APlayer MyPort}
+        fun{AmIAlive L ID}
+            case L of nil then false
+            [] H|T then
+                if H.id == ID.id then true
+                else {AmIAlive T ID}
+                end
+            end
+        end
         proc{Loop}
             TimeWait
             ID State
+            AlivePlayers
         in
             %TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
             TimeWait = 500
             {Delay TimeWait}
+            {Send EndGamePort getAlive(AlivePlayers)}
             {Send MyPort getState(ID State)}
-            if State == on then % On the board
+            if {AmIAlive AlivePlayers ID} then % Alive player
                 Action
                 TheMap
                 Value
@@ -686,8 +703,8 @@ in
                     {Loop}
                 end
             else
-                %{Delay Input.thinkMax}
-                {Loop}
+                % Dead player
+                skip % Stop
             end
         end
     in
@@ -768,24 +785,19 @@ in
         case Stream of Message|T then
             case Message of bombExplode(Pos) then
                 ResultEndGame
-                WinnerEndGame
                 TheMap
             in
                 {Send WindowPort hideBomb(Pos)}
                 {InformationPlayers PlayersPort info(bombExploded(Pos))} % inform other
                 {Send MapPort get(TheMap)}
                 {PropagationFireSimult Pos TheMap}
-                {CheckEndGame ResultEndGame WinnerEndGame}
-                if ResultEndGame == true then % End of game
-                    if WinnerEndGame == none then % No one won
-                        {Browser.browse 'No one won'}
-                    else
-                        {Send WindowPort displayWinner(WinnerEndGame)}
-                        {ForceEndGame}
-                    end
-                else
-                    % Recursion
+                {Send EndGamePort getEndGame(ResultEndGame)}
+                {Browser.browse thereeeeejrkej}
+                if ResultEndGame == none then % Not the end
                     {BombHandler T}
+                else % End of game
+                    {Send WindowPort displayWinner(ResultEndGame)}
+                    {ForceEndGame}
                 end
             else
                 {Browser.browse errorBombHandler}
@@ -808,6 +820,7 @@ in
                             thread {InformationPlayers PlayersPort info(deadPlayer(ID))} end
                             {Send WindowPort hidePlayer(ID)}
                             {Send WindowPort lifeUpdate(ID NewLife)}
+                            {Send EndGamePort deadPlayer(ID _)}
                             {ProcessDeath FirePosition PortT PosT}
                         else % Stil has lives
                             SpawnPosition Sstate
@@ -914,12 +927,54 @@ in
         proc{Loop Ports}
             case Ports of nil then skip
             [] H|T then
-                {Send H gotHit(_ _)}
+                ID
+            in
+                {Send H getState(ID _)}
+                {Send EndGamePort deadPlayer(ID)}
                 {Loop T}
             end
         end
     in
         {Loop PlayersPort}
+    end
+
+    proc{CheckEndGameAdvanced Stream AlivePlayers DeadPlayers}
+        fun{DeleteDeadPlayer AlivePlayers Dead}
+            case AlivePlayers of H|T then
+                if H.id == Dead.id then T
+                else
+                    H|{DeleteDeadPlayer T Dead}
+                end
+            [] nil then nil
+            end
+        end
+    in
+        case Stream of H|T then
+            case H of deadPlayer(ID Result) then
+                RestAlive
+            in
+                RestAlive = {DeleteDeadPlayer AlivePlayers ID}
+                case RestAlive of TheWinner|nil then
+                    Result = TheWinner % He has won
+                else
+                    Result = none
+                    {CheckEndGameAdvanced T RestAlive ID|DeadPlayers}
+                end
+            [] get(Deads) then
+                Deads = DeadPlayers
+                {CheckEndGameAdvanced T AlivePlayers DeadPlayers}
+            [] getEndGame(Result) then 
+                case AlivePlayers of TheWinner|nil then % only one player
+                    Result = TheWinner
+                else
+                    Result = none
+                    {CheckEndGameAdvanced T AlivePlayers DeadPlayers}
+                end
+            [] getAlive(Alives) then
+                Alives = AlivePlayers
+                {CheckEndGameAdvanced T AlivePlayers DeadPlayers}
+            end
+        end
     end
 
     
