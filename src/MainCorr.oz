@@ -69,10 +69,10 @@ in
    {Browser.browse PlayersPosition}
    thread {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort} end
    if Input.isTurnByTurn then
-        Next
+        Next IDs
     in
       thread 
-        {InitPlayersSpawnInformation PlayersPort PlayersPosition}
+        IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
         {TurnByTurn Map PlayersPort PlayersPosition Next Next nil nil|_} 
       end
    else
