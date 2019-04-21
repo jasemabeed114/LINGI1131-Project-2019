@@ -20,16 +20,16 @@ compile: PlayerManager.oz compilePlayers GUI.oz MainCorr.oz
 %.ozf: %.oz
 		${COMPILE} $<
 
-compilePlayers: Player000name.oz
-		${COMPILE} Player000name.oz
+compilePlayers: Player000name.oz Player001random.oz
+		${COMPILE} Player000name.oz Player001random.oz
 
 run: MainCorr.ozf
 		${EXECUTE} MainCorr.ozf
 
 clean:
 		rm -rf Player000name.ozf
+		rm -rf Player001random.ozf
 		rm -rf Input.ozf
 		rm -rf PlayerManager.ozf
 		rm -rf GUI.ozf
-		rm -rf Main.ozf
 		rm -rf MainCorr.ozf
