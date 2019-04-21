@@ -334,19 +334,25 @@ in
         SafeMove = {SafePossibleMove PossibleMove AllBombes}
 
         if NbBombs > 0 andthen {GetMapVal Map X Y} < 10 then % If the player can drop a bomb, we use a random
-            Rand1 Rand2 Tmp
+            Rand2 Tmp
         in
-            Rand1 = ({OS.rand} + 1) mod 9 % 10% chance to drop a bomb
-            if Rand1 == 5 then % Drop the bomb
+            if {IsBoxToBreak pt(x:X y:Y) Map} then % Drop the bomb
                 Action = bomb(pt(x:X y:Y))
             else % Move
                 Tmp = {Length SafeMove}
                 if Tmp == 0 then
                     if {SafeZone pt(x:X y:Y) AllBombes} then
                         Action = bomb(pt(x:X y:Y))
-                    else
-                        Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
-                        Action = move({Nth PossibleMove Rand2})
+                    else BreakBox Tmp2 in
+                        BreakBox = {BreakBoxPositions PossibleMove Map}
+                        Tmp2 = {Length BreakBox}
+                        if Tmp2 == 0 then
+                            Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
+                            Action = move({Nth PossibleMove Rand2})
+                        else
+                            Rand2 = ({OS.rand} mod Tmp2) + 1
+                            Action = move({Nth BreakBox Rand2})
+                        end
                     end
                 else
                     Rand2 = ({OS.rand} mod Tmp) + 1
@@ -360,9 +366,16 @@ in
             if Tmp == 0 then
                 if {SafeZone pt(x:X y:Y) AllBombes} then
                     Action = move(pt(x:X y:Y))
-                else
-                    Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
-                    Action = move({Nth PossibleMove Rand2})
+                else BreakBox Tmp2 in
+                    BreakBox = {BreakBoxPositions PossibleMove Map}
+                    Tmp2 = {Length BreakBox}
+                    if Tmp2 == 0 then
+                        Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
+                        Action = move({Nth PossibleMove Rand2})
+                    else
+                        Rand2 = ({OS.rand} mod Tmp2) + 1
+                        Action = move({Nth BreakBox Rand2})
+                    end
                 end
             else
                 Rand2 = ({OS.rand} mod Tmp) + 1
