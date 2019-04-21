@@ -16,7 +16,7 @@ in
       case Kind
       of player000bomber then {Player000bomber.portPlayer ID}
       [] player001random then {Player001random.portPlayer ID}
-      [] player002advenced then {{Player002advenced.portPlayer ID}.portPlayer ID}
+      [] player002advenced then {Player002advenced.portPlayer ID}
       %% Add here the pattern to recognize the name used in the 
       %% input file and launch the portPlayer function from the functor
       [] player000name then {Player000name.portPlayer ID}
