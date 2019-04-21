@@ -792,7 +792,6 @@ in
                 {Send MapPort get(TheMap)}
                 {PropagationFireSimult Pos TheMap}
                 {Send EndGamePort getEndGame(ResultEndGame)}
-                {Browser.browse thereeeeejrkej}
                 if ResultEndGame == none then % Not the end
                     {BombHandler T}
                 else % End of game
