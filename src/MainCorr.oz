@@ -468,7 +468,7 @@ in
             elseif Point == 3 then bonus
             elseif Point == 4 then spawn
             elseif Point == 5 then pointfloor
-            elseif Point == 6 then bonusfloot
+            elseif Point == 6 then bonusfloor
             end
         end
     in
@@ -657,7 +657,7 @@ in
                         else
                             {Loop}
                         end
-                    elseif Value == bonusfloot then % Bonus, random
+                    elseif Value == bonusfloor then % Bonus, random
                         Rand
                     in
                         Rand = ({OS.rand} mod 2) + 1

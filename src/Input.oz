@@ -29,7 +29,7 @@ in
 
 %%%% Style of game %%%%
    
-   IsTurnByTurn = true
+   IsTurnByTurn = false
    UseExtention = false %set to false for interop
    PrintOK = true
 
@@ -49,7 +49,7 @@ in
 %%%% Players description %%%%
 
    NbBombers = 2
-   Bombers = [player000bomber player002advenced]
+   Bombers = [player000bomber player001random]
    ColorBombers = [yellow red]
 
 %%%% Parameters %%%%
@@ -60,7 +60,7 @@ in
    ThinkMin = 500  % in millisecond
    ThinkMax = 2000 % in millisecond
    
-   Fire = 1
+   Fire = 2
    TimingBomb = 3 
    TimingBombMin = 3000 % in millisecond
    TimingBombMax = 4000 % in millisecond
