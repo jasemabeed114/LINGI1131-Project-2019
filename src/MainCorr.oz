@@ -795,8 +795,8 @@ in
                 if ResultEndGame == none then % Not the end
                     {BombHandler T}
                 else % End of game
-                    {Send WindowPort displayWinner(ResultEndGame)}
                     {ForceEndGame}
+                    {Send WindowPort displayWinner(ResultEndGame)}
                 end
             else
                 {Browser.browse errorBombHandler}

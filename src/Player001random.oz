@@ -19,6 +19,7 @@ define
    SetMapValBombExploded
    GetMapVal
    CheckBombsExploded
+   CheckMyBombExploded
    Name = 'Player001random'
 
    MySpawn
@@ -104,7 +105,17 @@ in
             [] bombPlanted(Pos) then
                 {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs} % Same
             [] bombExploded(Pos) then
-                {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs} % Same
+                MapWithoutTheBomb
+                NewBombs
+                WasMyBomb
+            in
+                NewBombs = {CheckMyBombExploded MyBombs Pos WasMyBomb}
+                if WasMyBomb then 
+                    MapWithoutTheBomb = {SetMapValBombExploded MyMap Pos.x Pos.y}
+                    {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MapWithoutTheBomb NewBombs} % Same
+                else
+                    {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap NewBombs}
+                end
             [] boxRemoved(Pos) then
                 case Pos of pt(x:X y:Y) then
                     % Call function to change the value of the map
@@ -124,8 +135,8 @@ in
                 MapBombExploded
                 BombsExploded
             in
-                BombsExploded = {CheckBombsExploded MyBombs MyMap MapBombExploded} % Check to delete the exploded bombs from the map
-                {CreateMoveAdvanced MapBombExploded MyPosition.x MyPosition.y MyBonuses.bomb ActionDo}
+                %BombsExploded = {CheckBombsExploded MyBombs MyMap MapBombExploded} % Check to delete the exploded bombs from the map
+                {CreateMoveAdvanced MyMap MyPosition.x MyPosition.y MyBonuses.bomb ActionDo}
                 ID = MyID
                 case ActionDo of bomb(Pos) then
                     NewBonuses
@@ -134,14 +145,17 @@ in
                 in
                     NewBonuses = bonus(bomb:MyBonuses.bomb-1 shield:MyBonuses.shield)
                     Action = bomb(Pos)
-                    if Input.isTurnByTurn then % Turn by turn mode
-                        NewBombs = (Pos#Input.timingBomb)|BombsExploded
-                        MapWithTheBomb = {SetMapValBombPlanted MyMap Pos.x Pos.y} % Value *10 for a bomb
-                    end % ATTENTION HANDLE SIMULTANEOUS GAME MODE HERE
+                    %if Input.isTurnByTurn then % Turn by turn mode
+                    %    NewBombs = (Pos#Input.timingBomb)|BombsExploded
+                    %    MapWithTheBomb = {SetMapValBombPlanted MyMap Pos.x Pos.y} % Value *10 for a bomb
+                    %else
+                        NewBombs = Pos|MyBombs
+                        MapWithTheBomb = {SetMapValBombPlanted MyMap Pos.x Pos.y}
+                    %end % ATTENTION HANDLE SIMULTANEOUS GAME MODE HERE
                     {TreatStream T MyState MyPosition MyLives MyPoints NewBonuses MapWithTheBomb NewBombs}
                 [] move(NewPos) then
                     Action = move(NewPos)
-                    {TreatStream T MyState NewPos MyLives MyPoints MyBonuses MapBombExploded BombsExploded}
+                    {TreatStream T MyState NewPos MyLives MyPoints MyBonuses MyMap MyBombs}
                 end
             end
         [] gotHit(ID Result)|T then
@@ -385,6 +399,18 @@ in
             else
                 (Position#(Timer-1))|{CheckBombsExploded T TheMap MapReturn}
             end
+        end
+    end
+
+    fun{CheckMyBombExploded MyBombs Position ?WasMyBomb}
+        case MyBombs of H|T then
+            if H.x == Position.x andthen H.y == Position.y then
+                WasMyBomb = true
+                T
+            else
+                H|{CheckMyBombExploded T Position WasMyBomb}
+            end
+        [] nil then WasMyBomb = false nil
         end
     end
 
