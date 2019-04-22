@@ -161,6 +161,7 @@ in
       case ThePlayersPort of nil then % All the players have played
          NewBombs
       in
+        {Delay 2000}
          NewBombs = {ProcessBombs TheBombs}
          {TurnByTurn PlayersPort NewBombs}
       [] PortH|PortT then % A player to move
