@@ -1,91 +1,86 @@
 functor
 import
-   GUI
-   Input
-   PlayerManager
-   Browser
-   OS
+    GUI
+    Input
+    PlayerManager
+    Browser
+    OS
 define
-   WindowPort
+    WindowPort
 
-   InitPlayers
-   InitPlayersSpawnInformation
-   TurnByTurn
-   ProcessBombs
-   DisableFirePreviousTurn
-   SetMapVal
-   MapChange
-   MapChangeAdvanced
-   CheckMove
-   InformationPlayers
-   PropagationFire
-   CheckEndGameAdvanced
-   
-   
-   Map
-   NbPlayers
-   Positions
-   PlayersPosition % Port of all the players
-   PlayersPort  % Initial position of all the players
+    InitPlayers
+    InitPlayersSpawnInformation
+    TurnByTurn
+    ProcessBombs
+    CheckMove
+    InformationPlayers
+    CheckEndGameAdvanced
 
-   
-   TimeFireDisplay
-   SimultaneousInitLoop
-   APlayer
-   MapHandler
-   MapPort
-   MapStream
-   BombHandler
-   BombPort
-   BombStream
-   PositionsHandler
-   PositionPort
-   PositionStream
-   EndGamePort
-   EndGameStream
 
-   ForceEndGame
-   PropagationFireSimult
+    Map
+    NbPlayers
+    Positions
+    PlayersPosition % Port of all the players
+    PlayersPort  % Initial position of all the players
+
+
+    TimeFireDisplay
+    SimultaneousInitLoop
+    APlayer
+    MapHandler
+    MapPort
+    MapStream
+    BombHandler
+    BombPort
+    BombStream
+    PositionsHandler
+    PositionPort
+    PositionStream
+    EndGamePort
+    EndGameStream
+
+    ForceEndGame
+    PropagationFireSimult
 
 in
 
-   Map = Input.map
+    Map = Input.map
 
-   %%%%%% Simultaneous %%%%%%%
-   TimeFireDisplay = 1000
+    %%%%%% Simultaneous %%%%%%%
+    TimeFireDisplay = 1000
 
 
-   %% Implement your controller here
-   WindowPort = {GUI.portWindow} % Cree le port pour la window
-   {Send WindowPort buildWindow} % Envoie la commande pour creer la window
-   {Delay 10000}
+    %% Implement your controller here
+    WindowPort = {GUI.portWindow} % Cree le port pour la window
+    {Send WindowPort buildWindow} % Envoie la commande pour creer la window
+    {Delay 10000}
 
-   NbPlayers = Input.nbBombers
+    NbPlayers = Input.nbBombers
 
-   Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
-   {Browser.browse PlayersPort}
-   {Browser.browse PlayersPosition}
-   thread {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort} end
-   if Input.isTurnByTurn then
-      IDs 
-   in
-      thread 
-         IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
-         BombPort = {NewPort BombStream}
-         MapPort = {NewPort MapStream}
-         PositionPort = {NewPort PositionStream}
-         EndGamePort = {NewPort EndGameStream}
+    Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
+    {Browser.browse PlayersPort}
+    {Browser.browse PlayersPosition}
+    thread {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort} end
+    if Input.isTurnByTurn then
+        IDs 
+    in
+        thread 
+            IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
+            BombPort = {NewPort BombStream}
+            MapPort = {NewPort MapStream}
+            PositionPort = {NewPort PositionStream}
+            EndGamePort = {NewPort EndGameStream}
 
-         thread {BombHandler BombStream} end
-         thread {MapHandler MapStream Map} end
-         thread {PositionsHandler PositionStream PlayersPosition} end
-         thread {CheckEndGameAdvanced EndGameStream IDs nil} end
-         {TurnByTurn PlayersPort nil}
-      end
-   else
-      thread
+            thread {BombHandler BombStream} end
+            thread {MapHandler MapStream Map} end
+            thread {PositionsHandler PositionStream PlayersPosition} end
+            thread {CheckEndGameAdvanced EndGameStream IDs nil} end
+            {TurnByTurn PlayersPort nil}
+        end
+    else
+        thread
             IDs
-      in
+        in
             IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
             BombPort = {NewPort BombStream}
             MapPort = {NewPort MapStream}
@@ -97,147 +92,147 @@ in
             thread {PositionsHandler PositionStream PlayersPosition} end
             thread {CheckEndGameAdvanced EndGameStream IDs nil} end
             {SimultaneousInitLoop PlayersPort}
-      end
-   end
-   fun{InitPlayersSpawnInformation PlayerPort PlayersPosition}
-      case PlayerPort#PlayersPosition
-      of nil#nil then nil
-      [](PortH|PortT)#(PositionH|PositionT) then 
+        end
+    end
+    fun{InitPlayersSpawnInformation PlayerPort PlayersPosition}
+        case PlayerPort#PlayersPosition
+        of nil#nil then nil
+        [](PortH|PortT)#(PositionH|PositionT) then 
             ID 
-      in
+        in
             {Send PortH getId(ID)}
             {Wait ID}
             thread {InformationPlayers PlayerPort info(spawnPlayer(ID PositionH))} end
             ID|{InitPlayersSpawnInformation PortT PositionT}
-      end
-   end
-   proc{InitPlayers NbPlayers ColorPlayers NamePlayers Positions PlayersPosition PlayersPort}
-      if NbPlayers == 0 then 
+        end
+    end
+    proc{InitPlayers NbPlayers ColorPlayers NamePlayers Positions PlayersPosition PlayersPort}
+        if NbPlayers == 0 then 
             PlayersPosition = nil PlayersPort = nil
-      else
+        else
             case ColorPlayers#NamePlayers#Positions
             of (ColorH|ColorT)#(NameH|NameT)#(PositionH|PositionT) then 
-               ID PlayerPort Position IDS PlayersPositionTail PlayersPortTail
+                ID PlayerPort Position PlayersPositionTail PlayersPortTail
             in
-               ID = bomber(id:NbPlayers color:ColorH name:NameH)
-               PlayerPort = {PlayerManager.playerGenerator NameH ID}
-               {Send PlayerPort assignSpawn(PositionH)}
-               {Send PlayerPort spawn(IDS Position)}
-               {Send WindowPort initPlayer(ID)}
-               {Send WindowPort spawnPlayer(ID PositionH)}
-               PlayersPosition = Position|PlayersPositionTail
-               PlayersPort     = PlayerPort|PlayersPortTail
-               {InitPlayers NbPlayers-1 ColorT NameT PositionT PlayersPositionTail PlayersPortTail}
+                ID = bomber(id:NbPlayers color:ColorH name:NameH)
+                PlayerPort = {PlayerManager.playerGenerator NameH ID}
+                {Send PlayerPort assignSpawn(PositionH)}
+                {Send PlayerPort spawn(_ Position)}
+                {Send WindowPort initPlayer(ID)}
+                {Send WindowPort spawnPlayer(ID PositionH)}
+                PlayersPosition = Position|PlayersPositionTail
+                PlayersPort     = PlayerPort|PlayersPortTail
+                {InitPlayers NbPlayers-1 ColorT NameT PositionT PlayersPositionTail PlayersPortTail}
             end
-      end
-   end
+        end
+    end
 
-   fun{ProcessBombs TheBombs}
-      case TheBombs of nil then nil % we processed all the bombs
-      [] N#Pos#BomberPort|T then
-         if N == 0 then % Bomb has to explode
+    fun{ProcessBombs TheBombs}
+        case TheBombs of nil then nil % we processed all the bombs
+        [] N#Pos#BomberPort|T then
+            if N == 0 then % Bomb has to explode
             {Send WindowPort hideBomb(Pos)} % GUI information
             {Send BomberPort add(bomb 1 _)} % Giving back the bomb
             % Informing other players
             thread {InformationPlayers PlayersPort info(bombExploded(Pos))} end
             {Send BombPort bombExplode(Pos)}
             {ProcessBombs T}
-         else
-            ((N-1)#Pos#BomberPort)|{ProcessBombs T}
-         end
-      end
-   end
+            else
+                ((N-1)#Pos#BomberPort)|{ProcessBombs T}
+            end
+        end
+    end
 
-   proc{TurnByTurn ThePlayersPort TheBombs}
-      fun{AmIAlive L ID}
-         case L of nil then false
-         [] H|T then
+    proc{TurnByTurn ThePlayersPort TheBombs}
+        fun{AmIAlive L ID}
+            case L of nil then false
+            [] H|T then
             if H.id == ID.id then true
             else {AmIAlive T ID}
             end
-         end
-      end
-   in 
-      case ThePlayersPort of nil then % All the players have played
-         NewBombs
-      in
-        {Delay 2000}
-         NewBombs = {ProcessBombs TheBombs}
-         {TurnByTurn PlayersPort NewBombs}
-      [] PortH|PortT then % A player to move
-         ID State
-         AlivePlayers
-      in
-         {Send PortH getState(ID State)}
-         {Send EndGamePort getAlive(AlivePlayers)}
-         if {AmIAlive AlivePlayers ID} then % Alive player
-            Action
-            TheMap
-            Value
-         in
-            {Send PortH doaction(_ Action)}
-            case Action of move(Pos) then % Move
-               {Send WindowPort movePlayer(ID Pos)}
-               {Send PositionPort modif(ID#Pos)}
-               thread {InformationPlayers PlayersPort info(movePlayer(ID Pos))} end
+            end
+        end
+    in 
+        case ThePlayersPort of nil then % All the players have played
+            NewBombs
+        in
+            {Delay 500}
+            NewBombs = {ProcessBombs TheBombs}
+            {TurnByTurn PlayersPort NewBombs}
+        [] PortH|PortT then % A player to move
+            ID
+            AlivePlayers
+        in
+            {Send PortH getState(ID _)}
+            {Send EndGamePort getAlive(AlivePlayers)}
+            if {AmIAlive AlivePlayers ID} then % Alive player
+                Action
+                TheMap
+                Value
+            in
+                {Send PortH doaction(_ Action)}
+                case Action of move(Pos) then % Move
+                    {Send WindowPort movePlayer(ID Pos)}
+                    {Send PositionPort modif(ID#Pos)}
+                    thread {InformationPlayers PlayersPort info(movePlayer(ID Pos))} end
 
-               % Now check if it has a bonus
-               {Send MapPort get(TheMap)}
-               Value = {CheckMove Pos.x Pos.y TheMap}
-               if Value == pointfloor then % Point bonus
-                  Result
-               in
-                  {Send PortH add(point 1 Result)} % Give the point
-                  {Send WindowPort hidePoint(Pos)}
-                  {Wait Result}
-                  {Send WindowPort scoreUpdate(ID Result)}
-                  {Send MapPort modif(Pos#0)}
-
-                  if Result >= 50 then % The player has won
-                     {Send WindowPort displayWinner(ID)}
-                  else
-                     {TurnByTurn PortT TheBombs}
-                  end
-               elseif Value == bonusfloor then % Bonus, random
-                  Rand
-               in
-                  Rand = ({OS.rand} mod 2) + 1
-                  if Rand == 1 then % We give 10 points of bonus
+                    % Now check if it has a bonus
+                    {Send MapPort get(TheMap)}
+                    Value = {CheckMove Pos.x Pos.y TheMap}
+                    if Value == pointfloor then % Point bonus
                         Result
-                  in
-                        {Send PortH add(point 10 Result)}
-                        {Send WindowPort hideBonus(Pos)}
+                    in
+                        {Send PortH add(point 1 Result)} % Give the point
+                        {Send WindowPort hidePoint(Pos)}
                         {Wait Result}
                         {Send WindowPort scoreUpdate(ID Result)}
                         {Send MapPort modif(Pos#0)}
-                        if Result >= 50 then % The player has won
-                           {Send WindowPort displayWinner(ID Result)}
-                        else
-                           {TurnByTurn PortT TheBombs}
-                        end
-                  else % This is a bomb
-                        {Send PortH add(bomb 1 _)}
-                        {Send WindowPort hideBonus(Pos)}
-                        {Send MapPort modif(Pos#0)}
-                        {TurnByTurn PortT TheBombs}
-                  end
-               else
-                  {TurnByTurn PortT TheBombs}
-               end
-            [] bomb(Pos) then
-               {Send WindowPort spawnBomb(Pos)}
-               thread {InformationPlayers PlayersPort info(bombPlanted(Pos))} end
-               {TurnByTurn PortT (Input.timingBomb#Pos#PortH)|TheBombs}
-            else
-               {TurnByTurn PortT TheBombs}
-            end
-         else
-            {TurnByTurn PortT TheBombs}
-         end
-      end
-   end
 
-   proc{InformationPlayers Ports InformationMessage}
+                        if Result >= 50 then % The player has won
+                            {Send WindowPort displayWinner(ID)}
+                        else
+                            {TurnByTurn PortT TheBombs}
+                        end
+                    elseif Value == bonusfloor then % Bonus, random
+                        Rand
+                    in
+                        Rand = ({OS.rand} mod 2) + 1
+                        if Rand == 1 then % We give 10 points of bonus
+                            Result
+                        in
+                            {Send PortH add(point 10 Result)}
+                            {Send WindowPort hideBonus(Pos)}
+                            {Wait Result}
+                            {Send WindowPort scoreUpdate(ID Result)}
+                            {Send MapPort modif(Pos#0)}
+                            if Result >= 50 then % The player has won
+                                {Send WindowPort displayWinner(ID Result)}
+                            else
+                                {TurnByTurn PortT TheBombs}
+                            end
+                        else % This is a bomb
+                            {Send PortH add(bomb 1 _)}
+                            {Send WindowPort hideBonus(Pos)}
+                            {Send MapPort modif(Pos#0)}
+                            {TurnByTurn PortT TheBombs}
+                        end 
+                    else
+                        {TurnByTurn PortT TheBombs}
+                    end
+                [] bomb(Pos) then
+                    {Send WindowPort spawnBomb(Pos)}
+                    thread {InformationPlayers PlayersPort info(bombPlanted(Pos))} end
+                    {TurnByTurn PortT (Input.timingBomb#Pos#PortH)|TheBombs}
+                else
+                    {TurnByTurn PortT TheBombs}
+                end
+            else
+                {TurnByTurn PortT TheBombs}
+            end
+        end
+    end
+
+    proc{InformationPlayers Ports InformationMessage}
         case Ports of nil then skip
         [] H|T then
             {Send H InformationMessage}
@@ -296,14 +291,14 @@ in
         end
         proc{Loop}
             TimeWait
-            ID State
+            ID
             AlivePlayers
         in
             %TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
             TimeWait = 500
             {Delay TimeWait}
             {Send EndGamePort getAlive(AlivePlayers)}
-            {Send MyPort getState(ID State)}
+            {Send MyPort getState(ID _)}
             if {AmIAlive AlivePlayers ID} then % Alive player
                 Action
                 TheMap
@@ -352,9 +347,7 @@ in
                                 {Loop}
                             end
                         else % This is a bomb
-                            Result
-                        in
-                            {Send MyPort add(bomb 1 Result)}
+                            {Send MyPort add(bomb 1 _)}
                             {Send WindowPort hideBonus(Pos)}
                             {Send MapPort modif(Pos#0)}
                             {Loop}
@@ -498,7 +491,7 @@ in
                             {Send EndGamePort deadPlayer(ID _)}
                             {ProcessDeath FirePosition PortT PosT}
                         else % Stil has lives
-                            SpawnPosition Sstate
+                            SpawnPosition
                         in
                             {Send PortH spawn(_ SpawnPosition)}
                             {Send PositionPort modif(ID#SpawnPosition)}
@@ -575,7 +568,6 @@ in
             end
         end
         PlayerActualPositions
-        MapBeforeExplode
     in
         {Send PositionPort get(PlayerActualPositions)}
         case BombPosition of pt(x:X y:Y) then
