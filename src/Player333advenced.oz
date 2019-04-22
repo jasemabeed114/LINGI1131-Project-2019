@@ -345,37 +345,55 @@ in
     end
 
     %Reachable test if at PlayerPos a Bomba at BombePos can hit him
-    fun{Reachable PlayerPos BombePos}
-        if PlayerPos.y == BombePos.y then Val in
-            Val = PlayerPos.x - BombePos.x
-            if {Abs Val} =< 1 then true
-            else false
+    fun{Reachable PlayerPos BombePos Map}
+        fun{OneDirection CurrentPosition Direction Count}
+            Val
+        in
+            Val = {GetMapVal Map CurrentPosition.x CurrentPosition.y}
+            if Count >= Input.fire then false
+            elseif Val == 1 orelse Val == 2 orelse Val == 3 then false
+            elseif CurrentPosition == PlayerPos then true
+            else
+                case Direction
+                of north then
+                    {OneDirection pt(x:CurrentPosition.x+1 y:CurrentPosition.y) Direction Count+1}
+                [] south then
+                    {OneDirection pt(x:CurrentPosition.x-1 y:CurrentPosition.y) Direction Count+1}
+                [] east then
+                    {OneDirection pt(x:CurrentPosition.x y:CurrentPosition.y+1) Direction Count+1}
+                [] weast then
+                    {OneDirection pt(x:CurrentPosition.x y:CurrentPosition.y-1) Direction Count+1}
+                end
             end
-        elseif PlayerPos.x == BombePos.x then Val in
-            Val = PlayerPos.y - BombePos.y
-            if {Abs Val} =< 1 then true
-            else false
-            end
-        else false
+        end
+    in
+        if PlayerPos == BombePos then true
+        else A B C D in
+            thread A = {OneDirection pt(x:BombePos.x+1 y:BombePos.y) north 0}end
+            thread B = {OneDirection pt(x:BombePos.x-1 y:BombePos.y) south 0}end
+            thread C = {OneDirection pt(x:BombePos.x y:BombePos.y+1) east 0}end
+            thread D = {OneDirection pt(x:BombePos.x y:BombePos.y-1) weast 0}end
+            
+            A orelse B orelse C orelse D
         end
     end
     %SafeZone test if at PlayerPos none bombe can hit him
-    fun{SafeZone PlayerPos AllBombes}
+    fun{SafeZone PlayerPos AllBombes Map}
         case AllBombes
         of nil then true
         [] H|T then
-            if {Reachable PlayerPos H} then false
-            else {SafeZone PlayerPos T}
+            if {Reachable PlayerPos H Map} then false
+            else {SafeZone PlayerPos T Map}
             end
         end
     end
     %Filter all SafeZone move
-    fun{SafePossibleMove PossibleMove AllBombes}
+    fun{SafePossibleMove PossibleMove AllBombes Map}
         case PossibleMove
         of nil then nil
         [] H|T then
-            if {SafeZone H AllBombes} then H|{SafePossibleMove T AllBombes}
-            else {SafePossibleMove T AllBombes}
+            if {SafeZone H AllBombes Map} then H|{SafePossibleMove T AllBombes Map}
+            else {SafePossibleMove T AllBombes Map}
             end
         end
     end
@@ -460,10 +478,10 @@ in
         else %Move
             Rand2 Tmp SafeMove
         in
-            SafeMove = {SafePossibleMove PossibleMove AllBombes}
+            SafeMove = {SafePossibleMove PossibleMove AllBombes Map}
             Tmp = {Length SafeMove}
             if Tmp == 0 then %No SafeMove
-                if {SafeZone pt(x:X y:Y) AllBombes} then % Stay at same place to not take any risk
+                if {SafeZone pt(x:X y:Y) AllBombes Map} then % Stay at same place to not take any risk
                     Action = bomb(pt(x:X y:Y))
                 else
                     Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
