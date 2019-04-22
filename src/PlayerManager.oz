@@ -4,7 +4,7 @@ import
    Player000bomber
    Player001random
    Player002advenced
-   Browser
+   Player333advenced
    %% Add here the name of the functor of a player
    %% Player000name
 export
@@ -17,6 +17,7 @@ in
       of player000bomber then {Player000bomber.portPlayer ID}
       [] player001random then {Player001random.portPlayer ID}
       [] player002advenced then {Player002advenced.portPlayer ID}
+      [] player333advenced then {Player333advenced.portPlayer ID}
       %% Add here the pattern to recognize the name used in the 
       %% input file and launch the portPlayer function from the functor
       [] player000name then {Player000name.portPlayer ID}
