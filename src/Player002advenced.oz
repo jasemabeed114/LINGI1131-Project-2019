@@ -25,6 +25,8 @@ define
    SafePossibleMove
    IsBoxToBreak
    BreakBoxPositions
+   AreBonusToTake
+   BonusPositions
 
    MySpawn
    MyID
@@ -336,7 +338,7 @@ in
         if NbBombs > 0 andthen {GetMapVal Map X Y} < 10 then % If the player can drop a bomb, we use a random
             Rand2 Tmp
         in
-            if {IsBoxToBreak pt(x:X y:Y) Map} then % Drop the bomb
+            if {IsBoxToBreak pt(x:X y:Y) Map 1} then % Drop the bomb
                 Action = bomb(pt(x:X y:Y))
             else % Move
                 Tmp = {Length SafeMove}
@@ -344,7 +346,7 @@ in
                     if {SafeZone pt(x:X y:Y) AllBombes} then
                         Action = bomb(pt(x:X y:Y))
                     else BreakBox Tmp2 in
-                        BreakBox = {BreakBoxPositions PossibleMove Map}
+                        BreakBox = {BreakBoxPositions PossibleMove Map Input.fire}
                         Tmp2 = {Length BreakBox}
                         if Tmp2 == 0 then
                             Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
@@ -355,8 +357,17 @@ in
                         end
                     end
                 else
-                    Rand2 = ({OS.rand} mod Tmp) + 1
-                    Action = move({Nth SafeMove Rand2})
+                    BonusMove Tmp2
+                in
+                    BonusMove = {BonusPositions SafeMove Map}
+                    Tmp2 = {Length BonusMove}
+                    if Tmp2 == 0 then
+                        Rand2 = ({OS.rand} mod Tmp) + 1
+                        Action = move({Nth SafeMove Rand2})
+                    else
+                        Rand2 = ({OS.rand} mod Tmp2) + 1
+                        Action = move({Nth BonusMove Rand2})
+                    end
                 end
             end
         else
@@ -367,7 +378,7 @@ in
                 if {SafeZone pt(x:X y:Y) AllBombes} then
                     Action = move(pt(x:X y:Y))
                 else BreakBox Tmp2 in
-                    BreakBox = {BreakBoxPositions PossibleMove Map}
+                    BreakBox = {BreakBoxPositions PossibleMove Map Input.fire}
                     Tmp2 = {Length BreakBox}
                     if Tmp2 == 0 then
                         Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
@@ -473,36 +484,40 @@ in
             end
         end
     end
-    fun{IsBoxToBreak PlayerPos Map}
-        fun{OneDirection CurrentPosition Direction Count}
+    fun{IsBoxToBreak PlayerPos Map N}
+        fun{OneDirection CurrentPosition Direction Count N}
             Val
         in
-            if Count >= Input.fire then false
+            if Count >= N then false
             else
                 case Direction
                 of north then
                     Val = {GetMapVal Map CurrentPosition.x CurrentPosition.y}
                     if Val == 2 orelse Val == 3 then true
+                    elseif Val == 1 then false
                     else
-                        {OneDirection pt(x:CurrentPosition.x+1 y:CurrentPosition.y) Direction Count+1}
+                        {OneDirection pt(x:CurrentPosition.x+1 y:CurrentPosition.y) Direction Count+1 N}
                     end
                 [] south then
                     Val = {GetMapVal Map CurrentPosition.x CurrentPosition.y}
                     if Val == 2 orelse Val == 3 then true
+                    elseif Val == 1 then false
                     else
-                        {OneDirection pt(x:CurrentPosition.x-1 y:CurrentPosition.y) Direction Count+1}
+                        {OneDirection pt(x:CurrentPosition.x-1 y:CurrentPosition.y) Direction Count+1 N}
                     end
                 [] east then
                     Val = {GetMapVal Map CurrentPosition.x CurrentPosition.y}
                     if Val == 2 orelse Val == 3 then true
+                    elseif Val == 1 then false 
                     else
-                        {OneDirection pt(x:CurrentPosition.x y:CurrentPosition.y+1) Direction Count+1}
+                        {OneDirection pt(x:CurrentPosition.x y:CurrentPosition.y+1) Direction Count+1 N}
                     end
                 [] weast then
                     Val = {GetMapVal Map CurrentPosition.x CurrentPosition.y}
                     if Val == 2 orelse Val == 3 then true
+                    elseif Val == 1 then false
                     else
-                        {OneDirection pt(x:CurrentPosition.x+1 y:CurrentPosition.y-1) Direction Count+1}
+                        {OneDirection pt(x:CurrentPosition.x+1 y:CurrentPosition.y-1) Direction Count+1 N}
                     end
                 end
             end
@@ -510,10 +525,10 @@ in
         Result
     in
         local A B C D in
-            thread A = {OneDirection pt(x:PlayerPos.x+1 y:PlayerPos.y) north 0} end
-            thread B = {OneDirection pt(x:PlayerPos.x-1 y:PlayerPos.y) south 0} end
-            thread C = {OneDirection pt(x:PlayerPos.x y:PlayerPos.y+1) east 0} end
-            thread D = {OneDirection pt(x:PlayerPos.x y:PlayerPos.y-1) weast 0} end
+            thread A = {OneDirection pt(x:PlayerPos.x+1 y:PlayerPos.y) north 0 N} end
+            thread B = {OneDirection pt(x:PlayerPos.x-1 y:PlayerPos.y) south 0 N} end
+            thread C = {OneDirection pt(x:PlayerPos.x y:PlayerPos.y+1) east 0 N} end
+            thread D = {OneDirection pt(x:PlayerPos.x y:PlayerPos.y-1) weast 0 N} end
             {Wait A}
             {Wait B}
             {Wait C}
@@ -522,12 +537,27 @@ in
         end
         Result
     end
-    fun{BreakBoxPositions PossibleMove Map}
+    fun{BreakBoxPositions PossibleMove Map N}
         case PossibleMove
         of nil then nil
         [] H|T then
-            if {IsBoxToBreak H Map} then H|{BreakBoxPositions T Map}
-            else {BreakBoxPositions T Map}
+            if {IsBoxToBreak H Map N} then H|{BreakBoxPositions T Map N}
+            else {BreakBoxPositions T Map N}
+            end
+        end
+    end
+    fun{AreBonusToTake PlayerPos Map}
+        Val
+    in
+        Val = {GetMapVal Map PlayerPos.x PlayerPos.y}
+        Val == 5 orelse Val == 6
+    end
+    fun{BonusPositions PossibleMove Map}
+        case PossibleMove
+        of nil then nil
+        [] H|T then
+            if {AreBonusToTake H Map} then H|{BonusPositions T Map}
+            else {BonusPositions T Map}
             end
         end
     end
