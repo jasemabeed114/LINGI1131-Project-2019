@@ -611,7 +611,7 @@ in
                 ID
             in
                 {Send H getState(ID _)}
-                {Send EndGamePort deadPlayer(ID)}
+                {Send EndGamePort deadPlayer(ID _)}
                 {Loop T}
             end
         end
