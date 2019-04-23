@@ -38,6 +38,9 @@ define
     PositionStream
     EndGamePort
     EndGameStream
+    BoxHandler
+    BoxPort
+    BoxStream
 
     ForceEndGame
     PropagationFireSimult
@@ -70,11 +73,13 @@ in
             MapPort = {NewPort MapStream}
             PositionPort = {NewPort PositionStream}
             EndGamePort = {NewPort EndGameStream}
+            BoxPort = {NewPort BoxStream}
 
             thread {BombHandler BombStream} end
             thread {MapHandler MapStream Map} end
             thread {PositionsHandler PositionStream PlayersPosition} end
             thread {CheckEndGameAdvanced EndGameStream IDs nil} end
+            thread {BoxHandler BoxStream} end
             {TurnByTurn PlayersPort nil}
         end
     else
@@ -86,11 +91,13 @@ in
             MapPort = {NewPort MapStream}
             PositionPort = {NewPort PositionStream}
             EndGamePort = {NewPort EndGameStream}
+            BoxPort = {NewPort BoxStream}
 
             thread {BombHandler BombStream} end
             thread {MapHandler MapStream Map} end
             thread {PositionsHandler PositionStream PlayersPosition} end
             thread {CheckEndGameAdvanced EndGameStream IDs nil} end
+            thread {BoxHandler BoxStream} end
             {SimultaneousInitLoop PlayersPort}
         end
     end
@@ -523,6 +530,8 @@ in
                         % It is a wall
                         % Stop propaging and bounds Changing to null because nothing changes
                     elseif Check == point then
+                        Result
+                    in
                         % It is a point box
                         % Destroy the box and stop propaging
                         thread 
@@ -533,8 +542,13 @@ in
                         thread {InformationPlayers PlayersPort info(boxRemoved(CurrentPosition))} end % Warn other players 
                         {Send WindowPort hideBox(CurrentPosition)} % Hides the box
                         {Send WindowPort spawnPoint(CurrentPosition)} % And shows the point
-                        {Send MapPort modif(CurrentPosition#5)}
+                        {Send BoxPort boxExploded(CurrentPosition 5 Result)}
+                        if Result then % End of game by lack of boxes
+                            {ForceEndGame}
+                        end
                     elseif Check == bonus then
+                        Result
+                    in
                         % It is a bonus box
                         % Destroy the box and stop propaging
                         thread 
@@ -545,7 +559,10 @@ in
                         thread {InformationPlayers PlayersPort info(boxRemoved(CurrentPosition))} end % Warn other players
                         {Send WindowPort hideBox(CurrentPosition)} % Hides the box
                         {Send WindowPort spawnBonus(CurrentPosition)} % And shows the bonus
-                        {Send MapPort modif(CurrentPosition#6)}
+                        {Send BoxPort boxExploded(CurrentPosition 6 Result)}
+                        if Result then % End of game by lack of boxes
+                            {ForceEndGame}
+                        end
                     else
                         % Either a floor tile, a point or a bonus
                         % For the time being, we let them in place
@@ -639,6 +656,76 @@ in
                 {CheckEndGameAdvanced T AlivePlayers DeadPlayers}
             end
         end
+    end
+
+    proc{BoxHandler Stream}
+        fun{Nth L N}
+            if N == 1 then L.1
+            else
+                {Nth L.2 N-1}
+            end
+        end
+
+        fun{InitLine Line Count}
+            case Line of nil then Count
+            [] H|T then
+                if H == 2 orelse H == 3 then 
+                    {InitLine T Count+1}
+                else
+                    {InitLine T Count}
+                end
+            end
+        end
+
+        fun{InitCount TheMap Count}
+            case TheMap of nil then Count
+            [] H|T then
+                CountLine
+            in
+                CountLine = {InitLine H 0}
+                {InitCount T Count + CountLine}
+            end
+        end
+
+        proc{Loop Stream Count}
+            case Stream of Message|T then
+                case Message of getEndGame(Result) then
+                    if Count == 0 then Result = true % End of game
+                    else
+                        Result = false
+                    end
+                [] boxExploded(Pos ValueToPut ?Result) then
+                    TheMap
+                    Value
+                in
+                    {Send MapPort get(TheMap)}
+                    Value = {Nth {Nth TheMap Pos.y} Pos.x}
+                    if Value == 2 orelse Value == 3 then
+                        {Send MapPort modif(Pos#ValueToPut)} % Change the value
+                        if Count-1 == 0 then % End of game
+                            Result = true
+                            {Loop T Count-1}
+                        else
+                            Result = false
+                            {Loop T Count}
+                        end
+                    else
+                        % Border case error
+                        {Loop T Count}
+                        Result = false
+                    end
+                end
+            else
+                % Error here
+                {Loop Stream Count}
+            end
+        end
+        TotalCount
+        TheMap
+    in
+        {Send MapPort get(TheMap)}
+        TotalCount = {InitCount TheMap 0}
+        {Loop Stream TotalCount}
     end
 
 end
