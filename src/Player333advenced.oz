@@ -117,7 +117,7 @@ in
             [] movePlayer(_ Pos) then Val in
                 Val = {GetMapVal MyMap Pos.x Pos.y}
                 % If a player is on a bonus/point case, we change this bonus/point case with a simple floor case
-                if Val == 2 orelse Val == 3 then 
+                if Val == 2 orelse Val == 3 orelse Val == 5 orelse Val == 6 then 
                     case Pos of pt(x:X y:Y) then NewMap in
                     NewMap = {SetMapValRemoveBonus MyMap X Y}
                     {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses NewMap MyBombs AllBombes}
@@ -172,9 +172,17 @@ in
                     NewBombs = Pos|MyBombs
                     MapWithTheBomb = {SetMapValBombPlanted MyMap Pos.x Pos.y}
                     {TreatStream T MyState MyPosition MyLives MyPoints NewBonuses MapWithTheBomb NewBombs AllBombes}
-                [] move(NewPos) then
+                [] move(NewPos) then Val in
                     Action = move(NewPos)
-                    {TreatStream T MyState NewPos MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+                    Val = {GetMapVal MyMap NewPos.x NewPos.y}
+                    if Val == 2 orelse Val == 3 orelse Val == 5 orelse Val == 6 then 
+                        NewMap
+                    in
+                        NewMap = {SetMapValRemoveBonus MyMap NewPos.x NewPos.y}
+                        {TreatStream T MyState NewPos MyLives MyPoints MyBonuses NewMap MyBombs AllBombes}
+                    else
+                        {TreatStream T MyState NewPos MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+                    end
                 end
             end
         [] gotHit(ID Result)|T then
@@ -445,6 +453,8 @@ in
             end
         end
         PossibleMove
+        SafeMove
+        Tmp
         Next
         Next2
         Next3
@@ -473,14 +483,14 @@ in
         Next4 = nil
         %% Here we have all possible move that we can do
 
+        SafeMove = {SafePossibleMove PossibleMove AllBombes Map}
+        Tmp = {Length SafeMove}
         
-        if NbBombs > 0 andthen {GetMapVal Map X Y} < 10 andthen {IsBoxToBreak pt(x:X y:Y) Map} then % If the player can drop a bomb and the bombe will break a box
+        if Tmp > 0 andthen NbBombs > 0 andthen {GetMapVal Map X Y} < 10 andthen {IsBoxToBreak pt(x:X y:Y) Map} then % If the player can drop a bomb and the bombe will break a box
             Action = bomb(pt(x:X y:Y))
         else %Move
-            Rand2 Tmp SafeMove
+            Rand2
         in
-            SafeMove = {SafePossibleMove PossibleMove AllBombes Map}
-            Tmp = {Length SafeMove}
             if Tmp == 0 then %No SafeMove
                 if {SafeZone pt(x:X y:Y) AllBombes Map} then % Stay at same place to not take any risk
                     Action = move(pt(x:X y:Y))
