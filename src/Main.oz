@@ -299,8 +299,8 @@ in
             ID
             AlivePlayers
         in
-            %TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
-            TimeWait = 500
+            TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
+            %TimeWait = 500
             {Delay TimeWait}
             {Send EndGamePort getAlive(AlivePlayers)}
             {Send MyPort getState(ID _)}
@@ -614,7 +614,7 @@ in
                 ID
             in
                 {Send H getState(ID _)}
-                {Send H gotHit(_ _)}
+                %{Send H gotHit(_ _)}
                 {Send EndGamePort deadPlayer(ID _)}
                 {Loop T}
             end
