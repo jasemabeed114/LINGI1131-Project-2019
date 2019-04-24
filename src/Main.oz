@@ -41,9 +41,14 @@ define
     BoxHandler
     BoxPort
     BoxStream
+    PointHandler
+    PointPort
+    PointStream
 
     ForceEndGame
     PropagationFireSimult
+
+    IDs
 
 in
 
@@ -65,8 +70,6 @@ in
     {Browser.browse PlayersPosition}
     thread {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort} end
     if Input.isTurnByTurn then
-        IDs 
-    in
         thread 
             IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
             BombPort = {NewPort BombStream}
@@ -74,30 +77,32 @@ in
             PositionPort = {NewPort PositionStream}
             EndGamePort = {NewPort EndGameStream}
             BoxPort = {NewPort BoxStream}
+            PointPort = {NewPort PointStream}
 
             thread {BombHandler BombStream} end
             thread {MapHandler MapStream Map} end
             thread {PositionsHandler PositionStream PlayersPosition} end
             thread {CheckEndGameAdvanced EndGameStream IDs nil} end
             thread {BoxHandler BoxStream} end
+            thread {PointHandler PointStream} end
             {TurnByTurn PlayersPort nil}
         end
     else
         thread
-            IDs
-        in
             IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
             BombPort = {NewPort BombStream}
             MapPort = {NewPort MapStream}
             PositionPort = {NewPort PositionStream}
             EndGamePort = {NewPort EndGameStream}
             BoxPort = {NewPort BoxStream}
+            PointPort = {NewPort PointStream}
 
             thread {BombHandler BombStream} end
             thread {MapHandler MapStream Map} end
             thread {PositionsHandler PositionStream PlayersPosition} end
             thread {CheckEndGameAdvanced EndGameStream IDs nil} end
             thread {BoxHandler BoxStream} end
+            thread {PointHandler PointStream} end
             {SimultaneousInitLoop PlayersPort}
         end
     end
@@ -194,6 +199,7 @@ in
                         {Wait Result}
                         {Send WindowPort scoreUpdate(ID Result)}
                         {Send MapPort modif(Pos#0)}
+                        {Send PointPort add(ID 1)} % Just for the future
 
                         if Result >= 50 then % The player has won
                             {Send WindowPort displayWinner(ID)}
@@ -212,8 +218,10 @@ in
                             {Wait Result}
                             {Send WindowPort scoreUpdate(ID Result)}
                             {Send MapPort modif(Pos#0)}
+                            {Send PointPort add(ID 1)} % Just for the future
+                            
                             if Result >= 50 then % The player has won
-                                {Send WindowPort displayWinner(ID Result)}
+                                {Send WindowPort displayWinner(ID)}
                             else
                                 {TurnByTurn PortT TheBombs}
                             end
@@ -275,7 +283,7 @@ in
     end
 
 
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%% FOR THE SIMULTANEOUS %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -328,10 +336,11 @@ in
                         {Wait Result}
                         {Send WindowPort scoreUpdate(ID Result)}
                         {Send MapPort modif(Pos#0)}
+                        {Send PointPort add(ID 1)} % Just for the future
 
                         if Result >= 50 then % The player has won
-                            {Send WindowPort displayWinner(ID)}
                             {ForceEndGame}
+                            {Send WindowPort displayWinner(ID)}
                         else
                             {Loop}
                         end
@@ -347,9 +356,11 @@ in
                             {Wait Result}
                             {Send WindowPort scoreUpdate(ID Result)}
                             {Send MapPort modif(Pos#0)}
+                            {Send PointPort add(ID 1)} % Just for the future
+
                             if Result >= 50 then % The player has won
-                                {Send WindowPort displayWinner(ID Result)}
                                 {ForceEndGame}
+                                {Send WindowPort displayWinner(ID)}
                             else
                                 {Loop}
                             end
@@ -462,17 +473,22 @@ in
             case Message of bombExplode(Pos) then
                 ResultEndGame
                 TheMap
+                ResultWaitOut
             in
                 {Send WindowPort hideBomb(Pos)}
                 {InformationPlayers PlayersPort info(bombExploded(Pos))} % inform other
                 {Send MapPort get(TheMap)}
-                {PropagationFireSimult Pos TheMap}
+                {PropagationFireSimult Pos TheMap ResultWaitOut}
+                {Wait ResultWaitOut}
                 {Send EndGamePort getEndGame(ResultEndGame)}
-                if ResultEndGame == none then % Not the end
+                if ResultEndGame == false then % Not the end
                     {BombHandler T}
                 else % End of game
+                    Winner
+                in
                     {ForceEndGame}
-                    {Send WindowPort displayWinner(ResultEndGame)}
+                    {Send PointPort endGame(Winner)}
+                    {Send WindowPort displayWinner(Winner)}
                 end
             else
                 {Browser.browse errorBombHandler}
@@ -480,7 +496,7 @@ in
         end
     end
 
-    proc{PropagationFireSimult BombPosition TheMap}
+    proc{PropagationFireSimult BombPosition TheMap ResultWaitOut}
 
         proc{ProcessDeath FirePosition PlayerPorts PlayersPosition}
             case PlayerPorts#PlayersPosition of nil#_ then skip
@@ -544,7 +560,11 @@ in
                         {Send WindowPort spawnPoint(CurrentPosition)} % And shows the point
                         {Send BoxPort boxExploded(CurrentPosition 5 Result)}
                         if Result then % End of game by lack of boxes
+                            Winner
+                        in
                             {ForceEndGame}
+                            {Send PointPort endGame(Winner)}
+                            {Send WindowPort displayWinner(Winner)}
                         end
                     elseif Check == bonus then
                         Result
@@ -561,7 +581,11 @@ in
                         {Send WindowPort spawnBonus(CurrentPosition)} % And shows the bonus
                         {Send BoxPort boxExploded(CurrentPosition 6 Result)}
                         if Result then % End of game by lack of boxes
+                            Winner
+                        in
                             {ForceEndGame}
+                            {Send PointPort endGame(Winner)}
+                            {Send WindowPort displayWinner(Winner)}
                         end
                     else
                         % Either a floor tile, a point or a bonus
@@ -599,6 +623,7 @@ in
                 {PropagationOneDirection pt(x:X-1 y:Y) BombPosition 0}
                 {PropagationOneDirection pt(x:X y:Y+1) BombPosition 0}
                 {PropagationOneDirection pt(x:X y:Y-1) BombPosition 0}
+                ResultWaitOut = 1
             end
         end
 
@@ -611,6 +636,7 @@ in
                 ID
             in
                 {Send H getState(ID _)}
+                {Send H gotHit(_ _)}
                 {Send EndGamePort deadPlayer(ID _)}
                 {Loop T}
             end
@@ -635,20 +661,28 @@ in
                 RestAlive
             in
                 RestAlive = {DeleteDeadPlayer AlivePlayers ID}
-                case RestAlive of TheWinner|nil then
-                    Result = TheWinner % He has won
+                case RestAlive of _|nil then
+                    Result = true % He has won
+                    {CheckEndGameAdvanced T RestAlive ID|DeadPlayers}
+                [] nil then
+                    Result = true
+                    {CheckEndGameAdvanced T RestAlive ID|DeadPlayers}
                 else
-                    Result = none
+                    Result = false
                     {CheckEndGameAdvanced T RestAlive ID|DeadPlayers}
                 end
             [] get(Deads) then
                 Deads = DeadPlayers
                 {CheckEndGameAdvanced T AlivePlayers DeadPlayers}
             [] getEndGame(Result) then 
-                case AlivePlayers of TheWinner|nil then % only one player
-                    Result = TheWinner
+                case AlivePlayers of nil then % only one player
+                    Result = true
+                    {CheckEndGameAdvanced T AlivePlayers DeadPlayers}
+                [] _|nil then
+                    Result = true
+                    {CheckEndGameAdvanced T AlivePlayers DeadPlayers}
                 else
-                    Result = none
+                    Result = false
                     {CheckEndGameAdvanced T AlivePlayers DeadPlayers}
                 end
             [] getAlive(Alives) then
@@ -727,5 +761,68 @@ in
         TotalCount = {InitCount TheMap 0}
         {Loop Stream TotalCount}
     end
+
+    proc{PointHandler Stream}
+        fun{ChangePoints ThePoints ID Points}
+            fun{Loop L Count}
+                case L of nil then 
+                    nil
+                [] (HisPoints#HisID)|T then
+                    if Count == ID.id then % the player
+                        NewVal
+                    in
+                        NewVal = HisPoints + Points
+                        (NewVal#HisID)|T
+                    else
+                        (HisPoints#HisID)|{Loop T Count-1}
+                    end
+                end
+            end
+        in
+            {Loop ThePoints Input.nbBombers}
+        end
+
+        fun{CheckWinner L}
+            fun{Loop L Acc}
+                case L of nil then Acc.2 % Only gives the ID of the winner
+                [] (Points#ID)|T then
+                    if Points > Acc.1 then % Current player has more points
+                        {Loop T Points#ID}
+                    else
+                        {Loop T Acc}
+                    end
+                end
+            end
+        in
+            {Loop L (~1)#0}
+        end
+
+        proc{Loop Stream ThePoints}
+            case Stream of Message|T then
+                case Message of add(ID Point) then
+                    NewPoints
+                in
+                    NewPoints = {ChangePoints ThePoints ID Point}
+                    {Loop T NewPoints}
+                [] endGame(Result) then
+                    % It is the end of the game, chose the winner
+                    Result = {CheckWinner ThePoints} % Result has the ID of the winner
+                end
+            end
+        end
+
+        fun{InitPoints IDs}
+            case IDs of nil then nil
+            [] H|T then
+                (0#H)|{InitPoints T}
+            end
+        end
+        PointsInit
+    in
+        PointsInit = {InitPoints IDs}
+        {Loop Stream PointsInit}
+    end
+
+
 
 end

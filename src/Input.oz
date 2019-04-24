@@ -24,6 +24,8 @@ define
    NbLives NbBombs
    ThinkMin ThinkMax
    TimingBomb TimingBombMin TimingBombMax Fire
+
+   Map2
 in 
 
 
@@ -46,6 +48,14 @@ in
 	  [1 4 0 2 2 2 2 2 2 2 0 4 1]
 	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
 
+     Map2 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
+	  [1 4 0 1 0 0 0 0 0 1 0 4 1]
+	  [1 0 1 0 0 0 0 0 0 1 1 0 1]
+	  [1 0 1 0 0 0 0 0 0 1 1 3 1]
+	  [1 0 1 0 0 0 0 0 0 1 1 0 1]
+	  [1 4 0 1 0 0 0 0 0 1 0 4 1]
+	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
+
 %%%% Players description %%%%
 
    NbBombers = 2
@@ -54,7 +64,7 @@ in
 
 %%%% Parameters %%%%
 
-   NbLives = 10
+   NbLives = 1
    NbBombs = 1
  
    ThinkMin = 500  % in millisecond
