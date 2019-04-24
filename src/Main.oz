@@ -719,7 +719,7 @@ in
                             {Loop T Count-1}
                         else
                             Result = false
-                            {Loop T Count}
+                            {Loop T Count-1}
                         end
                     else
                         % Border case error
