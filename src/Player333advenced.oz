@@ -495,8 +495,17 @@ in
                 if {SafeZone pt(x:X y:Y) AllBombes Map} then % Stay at same place to not take any risk
                     Action = move(pt(x:X y:Y))
                 else
-                    Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
-                    Action = move({Nth PossibleMove Rand2})
+                    BonusMove Tmp2
+                in
+                    BonusMove = {BonusPositions PossibleMove Map}
+                    Tmp2 = {Length BonusMove}
+                    if Tmp2 == 0 then
+                        Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
+                        Action = move({Nth PossibleMove Rand2})
+                    else
+                        Rand2 = ({OS.rand} mod Tmp2) + 1
+                        Action = move({Nth BonusMove Rand2})
+                    end
                 end
             else % They are SafeMove
                 BonusMove Tmp2

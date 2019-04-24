@@ -200,12 +200,7 @@ in
                         {Send WindowPort scoreUpdate(ID Result)}
                         {Send MapPort modif(Pos#0)}
                         {Send PointPort add(ID 1)} % Just for the future
-
-                        if Result >= 50 then % The player has won
-                            {Send WindowPort displayWinner(ID)}
-                        else
-                            {TurnByTurn PortT TheBombs}
-                        end
+                        {TurnByTurn PortT TheBombs}
                     elseif Value == bonusfloor then % Bonus, random
                         Rand
                     in
@@ -219,12 +214,7 @@ in
                             {Send WindowPort scoreUpdate(ID Result)}
                             {Send MapPort modif(Pos#0)}
                             {Send PointPort add(ID 1)} % Just for the future
-                            
-                            if Result >= 50 then % The player has won
-                                {Send WindowPort displayWinner(ID)}
-                            else
-                                {TurnByTurn PortT TheBombs}
-                            end
+                            {TurnByTurn PortT TheBombs}
                         else % This is a bomb
                             {Send PortH add(bomb 1 _)}
                             {Send WindowPort hideBonus(Pos)}
@@ -331,19 +321,13 @@ in
                     if Value == pointfloor then % Point bonus
                         Result
                     in
-                        {Send MyPort add(point 1 Result)} % Give the point to the player
+                        {Send MyPort add(point 70 Result)} % Give the point to the player
                         {Send WindowPort hidePoint(Pos)}
                         {Wait Result}
                         {Send WindowPort scoreUpdate(ID Result)}
                         {Send MapPort modif(Pos#0)}
-                        {Send PointPort add(ID 1)} % Just for the future
-
-                        if Result >= 50 then % The player has won
-                            {ForceEndGame}
-                            {Send WindowPort displayWinner(ID)}
-                        else
-                            {Loop}
-                        end
+                        {Send PointPort add(ID 70)} % Just for the future
+                        {Loop}
                     elseif Value == bonusfloor then % Bonus, random
                         Rand
                     in
@@ -357,13 +341,7 @@ in
                             {Send WindowPort scoreUpdate(ID Result)}
                             {Send MapPort modif(Pos#0)}
                             {Send PointPort add(ID 1)} % Just for the future
-
-                            if Result >= 50 then % The player has won
-                                {ForceEndGame}
-                                {Send WindowPort displayWinner(ID)}
-                            else
-                                {Loop}
-                            end
+                            {Loop}
                         else % This is a bomb
                             {Send MyPort add(bomb 1 _)}
                             {Send WindowPort hideBonus(Pos)}
