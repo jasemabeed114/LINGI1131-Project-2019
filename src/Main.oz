@@ -204,23 +204,57 @@ in
                     elseif Value == bonusfloor then % Bonus, random
                         Rand
                     in
-                        Rand = ({OS.rand} mod 2) + 1
-                        if Rand == 1 then % We give 10 points of bonus
-                            Result
-                        in
-                            {Send PortH add(point 10 Result)}
-                            {Send WindowPort hideBonus(Pos)}
-                            {Wait Result}
-                            {Send WindowPort scoreUpdate(ID Result)}
-                            {Send MapPort modif(Pos#0)}
-                            {Send PointPort add(ID 1)} % Just for the future
-                            {TurnByTurn PortT TheBombs}
-                        else % This is a bomb
-                            {Send PortH add(bomb 1 _)}
-                            {Send WindowPort hideBonus(Pos)}
-                            {Send MapPort modif(Pos#0)}
-                            {TurnByTurn PortT TheBombs}
-                        end 
+                        if Input.useExtention then
+                            Rand = ({OS.rand} + 1) mod 4
+                            if Rand == 0 then % We give 10 points of bonus
+                                Result
+                            in
+                                {Send PortH add(point 10 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Wait Result}
+                                {Send WindowPort scoreUpdate(ID Result)}
+                                {Send MapPort modif(Pos#0)}
+                                {Send PointPort add(ID 1)} % Just for the future
+                                {TurnByTurn PortT TheBombs}
+                            elseif Rand == 1 then % This is a bomb
+                                {Send PortH add(bomb 1 _)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Send MapPort modif(Pos#0)}
+                                {TurnByTurn PortT TheBombs}
+                            elseif Rand == 2 then%shield
+                                {Send PortH add(shield 1 _)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Send MapPort modif(Pos#0)}
+                                {TurnByTurn PortT TheBombs}
+                            else % life
+                                Result
+                            in
+                                {Send PortH add(life 1 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Wait Result}
+                                {Send WindowPort lifeUpdate(ID Result)}
+                                {Send MapPort modif(Pos#0)}
+                                {TurnByTurn PortT TheBombs}
+                            end
+                        else
+                            Rand = ({OS.rand} mod 2) + 1
+                            if Rand == 1 then % We give 10 points of bonus
+                                Result
+                            in
+                                {Send PortH add(point 10 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Wait Result}
+                                {Send WindowPort scoreUpdate(ID Result)}
+                                {Send MapPort modif(Pos#0)}
+                                {Send PointPort add(ID 1)} % Just for the future
+                                {TurnByTurn PortT TheBombs}
+                            else % This is a bomb
+                                {Send PortH add(bomb 1 _)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Send MapPort modif(Pos#0)}
+                                {TurnByTurn PortT TheBombs}
+                            end
+                        end
                     else
                         {TurnByTurn PortT TheBombs}
                     end
@@ -330,23 +364,57 @@ in
                         {Loop}
                     elseif Value == bonusfloor then % Bonus, random
                         Rand
-                    in
-                        Rand = ({OS.rand} mod 2) + 1
-                        if Rand == 1 then % We give 10 points of bonus
-                            Result
-                        in
-                            {Send MyPort add(point 10 Result)}
-                            {Send WindowPort hideBonus(Pos)}
-                            {Wait Result}
-                            {Send WindowPort scoreUpdate(ID Result)}
-                            {Send MapPort modif(Pos#0)}
-                            {Send PointPort add(ID 1)} % Just for the future
-                            {Loop}
-                        else % This is a bomb
-                            {Send MyPort add(bomb 1 _)}
-                            {Send WindowPort hideBonus(Pos)}
-                            {Send MapPort modif(Pos#0)}
-                            {Loop}
+                    in 
+                        if Input.useExtention then
+                            Rand = ({OS.rand} + 1) mod 4
+                            if Rand == 0 then % We give 10 points of bonus
+                                Result
+                            in
+                                {Send MyPort add(point 10 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Wait Result}
+                                {Send WindowPort scoreUpdate(ID Result)}
+                                {Send MapPort modif(Pos#0)}
+                                {Send PointPort add(ID 1)} % Just for the future
+                                {Loop}
+                            elseif Rand == 1 then % This is a bomb
+                                {Send MyPort add(bomb 1 _)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Send MapPort modif(Pos#0)}
+                                {Loop}
+                            elseif Rand == 2 then %shied
+                                {Send MyPort add(shield 1 _)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Send MapPort modif(Pos#0)}
+                                {Loop}
+                            else % life
+                                Result
+                            in
+                                {Send MyPort add(life 1 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Wait Result}
+                                {Send WindowPort lifeUpdate(ID Result)}
+                                {Send MapPort modif(Pos#0)}
+                                {Loop}
+                            end
+                        else
+                            Rand = ({OS.rand} mod 2) + 1
+                            if Rand == 1 then % We give 10 points of bonus
+                                Result
+                            in
+                                {Send MyPort add(point 10 Result)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Wait Result}
+                                {Send WindowPort scoreUpdate(ID Result)}
+                                {Send MapPort modif(Pos#0)}
+                                {Send PointPort add(ID 1)} % Just for the future
+                                {Loop}
+                            else % This is a bomb
+                                {Send MyPort add(bomb 1 _)}
+                                {Send WindowPort hideBonus(Pos)}
+                                {Send MapPort modif(Pos#0)}
+                                {Loop}
+                            end
                         end
                     else
                         {Loop}
@@ -484,7 +552,8 @@ in
                 in
                     {Send PortH gotHit(ID Result)}
                     {Wait Result}
-                    case Result of death(NewLife) then % Was on board
+                    case Result 
+                    of death(NewLife) then % Was on board
                         if NewLife == 0 then % Dead player
                             thread {InformationPlayers PlayersPort info(deadPlayer(ID))} end
                             {Send WindowPort hidePlayer(ID)}
