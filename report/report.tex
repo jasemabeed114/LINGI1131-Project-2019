@@ -1,0 +1,39 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[top=1.9cm, bottom=1.9cm, left=1.9cm, right=1.9cm]{geometry} % marges
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\newcolumntype{s}{>{\columncolor{mygray}} l}
+
+\title{LINGI1131 - Rapport de projet}
+\author{Louis Navarre}
+\date{March 2019}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Ce rapport concerne le projet pour le cours LINGI1131 - Concepts de langages de programmation (\emph{Computer languages concepts}). \\
+
+Dans un premier temps, en ce qui concerne la partie obligatoire, nous avons effectué tout ce qui était demandé. Des explications sur la structure de notre implémentation de notre contrôleur et de nos joueurs concerne la première partie de notre rapport. Dans un second temps, nous avons ajouté quelques extensions à notre travail. Tout d'abord, nous avons ajouté les deux bonus supplémentaires conseillés lorsqu'un joueur en ramasse un sur le terrain de jeu: le bouclier et la vie supplémentaire. Ensuite, nous avons modifié à notre guise le \texttt{GUI} afin de le rendre plus ludique et plus approprié à un jeu lugubre et mortel tel que le \emph{Bomberman}. \textbf{AJOUTER ICI LES AUTRES BONUS EFFECTUES!}.
+
+\section{Contrôleur \texttt{Main}}
+Notre contrôleur est séparé en deux parties: la gestion des évènements et la gestion des joueurs. Faire de la sorte nous permet d'éviter de dupliquer du code pour le mode de jeu tour par tour, et le mode simultanée. Ainsi, les seules différences notables entre ces deux modes de jeu se situent au niveau de la gestion des joueuers - la gestion des évènements est donc identique peu importe le mode de jeu. Toutes les fonctions/procédures référencées dans cette section sont relatives au fichier \texttt{Main.oz}.
+\subsection{Gestion des joueurs}
+\subsubsection{Mode tour par tour}
+Le mode tour par tour est totalement géré par la procédure \texttt{TurnByTurn}. Les arguments de cette procédure sont:
+\begin{itemize}
+	\item \texttt{ThePlayersPort}: la liste de joueurs à encore traiter dans l'itération.
+	\item \texttt{TheBombs}: les bombes posées et non encore explosées.
+\end{itemize}
+ Cette procédure "itère" (en effectuant des appels récursifs) sur la liste des ports des joueurs présents dans la partie (même les joueurs décédés). Lorsque l'itération est terminée (i.e. le reste de la liste à traiter est \texttt{nil}), la procédure vérifie l'état des bombes en attente d'explosion, et traite les bombes devant exploser à ce tour, comme expliqué dans le paragraphe correspondant ci-dessous. Ensuite, la procédure effectue un appel récursif effectue un appel récursif \textbf{C'EST PAS LE CAS, A CHANGER DANS LE CODE} si la fin de partie n'est pas détectée; et recommençant l'itération depuis le début de la liste de ports de joueurs. Les deux paragraphes ci-dessous détaillent le fonctionnement de la procédure en fonction de l'état de l'itération.
+
+\paragraph{Pour un joueur.}Si le joueur est toujours en vie\ref{gestion_morts}, alors nous demandons au joueur d'effectuer sa prochaine action. S'il s'agit d'un déplacement (\texttt{move}), alors nous vérifions regardons si le joueur vient de récupérer un point/bonus. Nous traitons le point/bonus, et mettons à jour la carte (\emph{map})\ref{gestion_map}. S'il s'agit d'une bombe, alors nous ajoutons la position de la bombe plantée, l'identifiant (\texttt{ID}) du joueur l'ayant posée, ainsi que le nombre de tours avant explosions (\texttt{Input.timingBomb}).
+
+\paragraph{En fin de tour.}Lorsque le tour est fini (i.e. tous les joueurs ont effectué leur action), la procédure vérifie l'état des bombes: nous décrémentons les \emph{timers} de chacune des bombes posées, et nous procédons à l'explosion des bombes où ce \emph{timer} est nul\ref{getsion_bombes}.
+
+\end{document}
