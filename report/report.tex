@@ -1,0 +1,61 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[top=1.9cm, bottom=1.9cm, left=1.9cm, right=1.9cm]{geometry} % marges
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\newcolumntype{s}{>{\columncolor{mygray}} l}
+
+\title{LINGI1131 - Rapport de projet}
+\author{Louis Navarre}
+\date{March 2019}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+Ce rapport concerne le projet pour le cours LINGI1131 - Concepts de langages de programmation (\emph{Computer languages concepts}). \\ \\
+Dans un premier temps, en ce qui concerne la partie obligatoire, nous avons effectué tout ce qui était demandé. Des explications sur la structure de notre implémentation de notre contrôleur et de nos joueurs concerne la première partie de notre rapport. Dans un second temps, nous avons ajouté quelques extensions à notre travail. Tout d'abord, nous avons ajouté les deux bonus supplémentaires conseillés lorsqu'un joueur en ramasse un sur le terrain de jeu: le bouclier et la vie supplémentaire. Ensuite, nous avons modifié à notre guise le \texttt{GUI} afin de le rendre plus ludique et plus approprié à un jeu lugubre et mortel tel que le \emph{Bomberman}. \textbf{AJOUTER ICI LES AUTRES BONUS EFFECTUES!}.
+
+\section{Contrôleur \texttt{Main}}
+Notre contrôleur est séparé en deux parties: la gestion des évènements et la gestion des joueurs. Faire de la sorte nous permet d'éviter de dupliquer du code pour le mode de jeu tour par tour, et le mode simultanée. Ainsi, les seules différences notables entre ces deux modes de jeu se situent au niveau de la gestion des joueuers - la gestion des évènements est donc identique peu importe le mode de jeu. Toutes les fonctions/procédures référencées dans cette section sont relatives au fichier \texttt{Main.oz}.
+\subsection{Gestion des joueurs}
+\subsubsection{Mode tour par tour}
+Le mode tour par tour est totalement géré par la procédure \texttt{TurnByTurn}. Les arguments de cette procédure sont:
+\begin{itemize}
+	\item \texttt{ThePlayersPort}: la liste de joueurs à encore traiter dans l'itération.
+	\item \texttt{TheBombs}: les bombes posées et non encore explosées.
+\end{itemize}
+ Cette procédure "itère" (en effectuant des appels récursifs) sur la liste des ports des joueurs présents dans la partie (même les joueurs décédés). Lorsque l'itération est terminée (i.e. le reste de la liste à traiter est \texttt{nil}), la procédure vérifie l'état des bombes en attente d'explosion, et traite les bombes devant exploser à ce tour, comme expliqué dans le paragraphe correspondant ci-dessous. Ensuite, la procédure effectue un appel récursif effectue un appel récursif \textbf{C'EST PAS LE CAS, A CHANGER DANS LE CODE} si la fin de partie n'est pas détectée; et recommençant l'itération depuis le début de la liste de ports de joueurs. Les deux paragraphes ci-dessous détaillent le fonctionnement de la procédure en fonction de l'état de l'itération.
+
+\paragraph{Pour un joueur.}Si le joueur est toujours en vie (\ref{gestion_morts}), alors nous demandons au joueur d'effectuer sa prochaine action. S'il s'agit d'un déplacement (\texttt{move}), alors nous vérifions regardons si le joueur vient de récupérer un point/bonus. Nous traitons le point/bonus, et mettons à jour la carte (\emph{map}) (\ref{gestion_map}). S'il s'agit d'une bombe, alors nous ajoutons la position de la bombe plantée, l'identifiant (\texttt{ID}) du joueur l'ayant posée, ainsi que le nombre de tours avant explosions (\texttt{Input.timingBomb}).
+
+\paragraph{En fin de tour.}Lorsque le tour est fini (i.e. tous les joueurs ont effectué leur action), la procédure vérifie l'état des bombes: nous décrémentons les \emph{timers} de chacune des bombes posées, et nous procédons à l'explosion des bombes où ce \emph{timer} est nul (\ref{gestion_bombes}).
+
+\subsubsection{Mode simultanée}
+\label{simult}
+Le mode simultanée est initialisé par la procédure \texttt{SimultaneousInitLoop}. Le seul argument de cette procédure est la liste des ports des différents joueurs. Pour chacun de ceux-ci, la fonction crée un \emph{thread} qui exécute la procédure \texttt{APlayer}, prenant comme seul argument le port du joueur qu'il contrôle. Une fois cette procédure lancée, le principe est presque identique que pour l'action d'un joueur dans le mode tour par tour. La première différence est que, comme le mode de jeu l'indique, un joueur est indépendant des autres; ainsi, la procédure se rappelle elle-même pour demander au joueur d'effectuer sa prochaine action, etc... \\ \\
+La différence majeure se situe au niveau la gestion de l'amorçage de bombes. Ici, lorsque la procédure reçoit comme action du joueur de poser une bombe, un \emph{thread} indépendant est créé. Le but de ce \emph{thread} est simple: afficher la bombe à l'écran, attendre un délai fixé par les propriétés de la partie (\texttt{Input.oz}), enlever la bombe de l'écran, et traiter l'explosion de la bombe (\ref{gestion_bombes}).
+
+\subsection{Gestion des évènements}
+\paragraph{Mot au lecteur.}Les justifications qui suivent sont justifiées pour le mode simultanée, pas pour le mode tour par tour. Il était en effet possible de ne pas utiliser des agents pour le mode tour par tour, contrairement à ce qui est fait ici. Mais, dans un souci de clarté et afin de pouvoir réutiliser du code déjà existant (sans pour autant impacter les performances de notre programme, du moins estimons-nous), nous avons utilisé le même fonctionnement pour le premier mode de jeu. \\ \\
+Plusieurs évènements peuvent arriver pendant la partie: une boite peut exploser dû à une bombe qui a elle-même explosé, faisant apparaitre un bonus ou un point; un joueur peut se déplacer, ou encore mourir, ce qui peut potentiellement indiquer la fin de la partie. Dans ce cas, il faut savoir identifier le vainqueur, etc... Il faut donc un mécanisme qui permet aux différents agents de traitement de joueurs (\ref{simult}) d'être tenu au courant des dernières modifications.
+\subsubsection{Gestion de la carte}
+\label{gestion_map}
+Cet agent est responsable de la carte de jeu. Dès qu'une modification doit être faite, un message est envoyé et traité par l'agent. Celui-ci tient donc comme argument, en plus du \emph{Stream} à traiter, la version la plus récente de la carte. Il est également possible (et nécessaire) de demander à cet agent la dernière version de la carte de jeu, par exemple pour savoir si le joueur est arrivé sur une case où un bonus est présent, ou bien si l'explosion d'une bombe brise une boîte à bonus/point.
+\subsubsection{Gestion des morts}
+\label{gestion_morts}
+Cet agent tient une liste de tous les joueurs encore en vie. Cela permet entre-autres de déterminer si la partie doit se finir puisqu'il n'y a plus qu'un/aucun joueur présent sur la carte. Cet agent peut aussi donner la liste des joueurs encore en vie; c'est ce qui est utilisé par les agents de joueurs pour déterminer si le joueur est encore en vie ou non dans la partie.
+\paragraph{Remarque.}Utiliser l'état du joueur (\emph{State}) pour déterminer si celui-ci était encore dans la partie n'était pas suffisant, puisqu'au cas où celui-ci venait de mourir mais n'était pas éliminé du jeu (i.e. avait encore des vies), cela provoquait une mauvaise interprétation et pouvait amener à l'élimination du joueur alors que ce n'est pas le cas.\\ \\
+Une valeur booléenne est "envoyée" (par liage de l'identificateur envoyé dans le message) à l'émetteur du message, pour indiquer s'il s'agit de la fin de la partie ou non. En cas de fin de partie, le vainqueur est déterminé par ses points (\ref{gestion_points}).
+\subsubsection{Gestion des bombes}
+\label{gestion_bombes}
+\subsubsection{Gestion des positions}
+\label{gestion_positions}
+\subsubsection{Gestion des points}
+\label{gestion_points}
+
+\end{document}
