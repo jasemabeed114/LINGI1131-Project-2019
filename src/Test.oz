@@ -97,6 +97,18 @@ in
             end
         end
 
+        fun{TestGoodRespawn}
+            Result
+            BoolLife
+        in
+            {Send PlayersPort.1 gotHit(_ Result)}
+            if Result == Input.nbLives - 1 then
+                BoolLife = true % The player has correctly decremented his lives by one
+            else
+                BoolLife = false
+            end
+            
+
         OneMoveBool
     in
         OneMoveBool = {TestOneMove}
