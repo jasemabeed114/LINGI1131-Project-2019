@@ -29,7 +29,7 @@ Le mode tour par tour est totalement géré par la procédure \texttt{TurnByTurn
 	\item \texttt{ThePlayersPort}: la liste de joueurs à encore traiter dans l'itération.
 	\item \texttt{TheBombs}: les bombes posées et non encore explosées.
 \end{itemize}
- Cette procédure "itère" (en effectuant des appels récursifs) sur la liste des ports des joueurs présents dans la partie (même les joueurs décédés). Lorsque l'itération est terminée (i.e. le reste de la liste à traiter est \texttt{nil}), la procédure vérifie l'état des bombes en attente d'explosion, et traite les bombes devant exploser à ce tour, comme expliqué dans le paragraphe correspondant ci-dessous. Ensuite, la procédure effectue un appel récursif effectue un appel récursif \textbf{C'EST PAS LE CAS, A CHANGER DANS LE CODE} si la fin de partie n'est pas détectée; et recommençant l'itération depuis le début de la liste de ports de joueurs. Les deux paragraphes ci-dessous détaillent le fonctionnement de la procédure en fonction de l'état de l'itération.
+ Cette procédure "itère" (en effectuant des appels récursifs) sur la liste des ports des joueurs présents dans la partie (même les joueurs décédés). Lorsque l'itération est terminée (i.e. le reste de la liste à traiter est \texttt{nil}), la procédure vérifie l'état des bombes en attente d'explosion, et traite les bombes devant exploser à ce tour, comme expliqué dans le paragraphe correspondant ci-dessous. Ensuite, la procédure effectue un appel récursif effectue un appel récursif si la fin de partie n'est pas détectée; et recommençant l'itération depuis le début de la liste de ports de joueurs. Les deux paragraphes ci-dessous détaillent le fonctionnement de la procédure en fonction de l'état de l'itération.
 
 \paragraph{Pour un joueur.}Si le joueur est toujours en vie (\ref{gestion_morts}), alors nous demandons au joueur d'effectuer sa prochaine action. S'il s'agit d'un déplacement (\texttt{move}), alors nous vérifions regardons si le joueur vient de récupérer un point/bonus. Nous traitons le point/bonus, et mettons à jour la carte (\emph{map}) (\ref{gestion_map}). S'il s'agit d'une bombe, alors nous ajoutons la position de la bombe plantée, l'identifiant (\texttt{ID}) du joueur l'ayant posée, ainsi que le nombre de tours avant explosions (\texttt{Input.timingBomb}).
 
@@ -42,20 +42,38 @@ La différence majeure se situe au niveau la gestion de l'amorçage de bombes. I
 
 \subsection{Gestion des évènements}
 \paragraph{Mot au lecteur.}Les justifications qui suivent sont justifiées pour le mode simultanée, pas pour le mode tour par tour. Il était en effet possible de ne pas utiliser des agents pour le mode tour par tour, contrairement à ce qui est fait ici. Mais, dans un souci de clarté et afin de pouvoir réutiliser du code déjà existant (sans pour autant impacter les performances de notre programme, du moins estimons-nous), nous avons utilisé le même fonctionnement pour le premier mode de jeu. \\ \\
-Plusieurs évènements peuvent arriver pendant la partie: une boite peut exploser dû à une bombe qui a elle-même explosé, faisant apparaitre un bonus ou un point; un joueur peut se déplacer, ou encore mourir, ce qui peut potentiellement indiquer la fin de la partie. Dans ce cas, il faut savoir identifier le vainqueur, etc... Il faut donc un mécanisme qui permet aux différents agents de traitement de joueurs (\ref{simult}) d'être tenu au courant des dernières modifications.
-\subsubsection{Gestion de la carte}
+Plusieurs évènements peuvent arriver pendant la partie: une boite peut exploser dû à une bombe qui a elle-même explosé, faisant apparaitre un bonus ou un point; un joueur peut se déplacer, ou encore mourir, ce qui peut potentiellement indiquer la fin de la partie. Dans ce cas, il faut savoir identifier le vainqueur, etc... Il faut donc un mécanisme qui permet aux différents agents de traitement de joueurs (\ref{simult}) d'être tenu au courant des dernières modifications. \\ \\
+Nous avons décidé de créer un port différent pour chaque type d'évènement, et une fonction différente pour traiter chacun des \emph{streams} de ces ports, pour pouvoir gérer chaque évènement et chaque changement d'état du jeu indépendamment du reste. Nous expliquons ci-dessous les différents ports utilisés pour gérer ces changements d'état/évènements.
+\subsubsection{Gestion de la carte: \texttt{MapHandler}}
 \label{gestion_map}
 Cet agent est responsable de la carte de jeu. Dès qu'une modification doit être faite, un message est envoyé et traité par l'agent. Celui-ci tient donc comme argument, en plus du \emph{Stream} à traiter, la version la plus récente de la carte. Il est également possible (et nécessaire) de demander à cet agent la dernière version de la carte de jeu, par exemple pour savoir si le joueur est arrivé sur une case où un bonus est présent, ou bien si l'explosion d'une bombe brise une boîte à bonus/point.
-\subsubsection{Gestion des morts}
+\subsubsection{Gestion des morts: \texttt{CheckEndGameAdvanced}}
 \label{gestion_morts}
 Cet agent tient une liste de tous les joueurs encore en vie. Cela permet entre-autres de déterminer si la partie doit se finir puisqu'il n'y a plus qu'un/aucun joueur présent sur la carte. Cet agent peut aussi donner la liste des joueurs encore en vie; c'est ce qui est utilisé par les agents de joueurs pour déterminer si le joueur est encore en vie ou non dans la partie.
 \paragraph{Remarque.}Utiliser l'état du joueur (\emph{State}) pour déterminer si celui-ci était encore dans la partie n'était pas suffisant, puisqu'au cas où celui-ci venait de mourir mais n'était pas éliminé du jeu (i.e. avait encore des vies), cela provoquait une mauvaise interprétation et pouvait amener à l'élimination du joueur alors que ce n'est pas le cas.\\ \\
 Une valeur booléenne est "envoyée" (par liage de l'identificateur envoyé dans le message) à l'émetteur du message, pour indiquer s'il s'agit de la fin de la partie ou non. En cas de fin de partie, le vainqueur est déterminé par ses points (\ref{gestion_points}).
-\subsubsection{Gestion des bombes}
+\subsubsection{Gestion des bombes: \texttt{BombHandler}}
 \label{gestion_bombes}
-\subsubsection{Gestion des positions}
+Cet agent est utilisé lorsqu'une bombe doit exploser. Il propage le feu sur la carte, et vérifie s'il s'agit de la fin de la partie (c'est-à-dire que les dernières boites sur la carte ont été détruites, ou qu'il n'y a plus qu'un/aucun joueur sur la carte). Pour propager le feu, cet agent appelle la procédure \texttt{PropagationFireSimult} avec deux arguments majeurs: 
+\begin{itemize}
+	\item \texttt{BombPosition}: l'emplacement de la bombe
+	\item \texttt{TheMap}: la version la plus récente de la carte
+\end{itemize}
+Cette fonction s'occupe de la propagation du feu. Elle affiche tout d'abord à l'écran du feu à l'endroit de l'explosion de la bombe, puis propage ce feu dans les quatre directions cardinales par rapport à cette position (avec la procédure \texttt{PropagationInOneDirection}). Cette procédure vérifie si le feu peut se propager (c'est-à-dire si il ne s'agit pas d'un mur et si la limite de propagation n'est pas atteinte). Si c'est le cas, alors nous regardons si la case de propagation est une case boite. Si oui alors la boite est détruite (\ref{gestion_boxes}) et nous vérifions s'il s'agit de la fin de la partie. Si non, alors le feu à cette position peut potentiellement tuer un joueur et se propage dans la bonne direction.
+\subsubsection{Gestion des positions: \texttt{PositionsHandler}}
 \label{gestion_positions}
-\subsubsection{Gestion des points}
+Le fonctionnement de cet agent est fort semblable à celui de la gestion de la carte: il tient une liste de la position actuelle de chacun des joueurs; et modifie celle-ci lorsqu'un joueur effectue un déplacement. \\ \\
+Cet agent est utilisé pour connaitre la position actuelle des joueurs lorsqu'une bombe explose. Il était aussi possible de demander au joueur sa position (et stocker celle-ci comme argument dans la procédure \texttt{APlayer} (\ref{simult})), mais nous avons préféré garder le même fonctionnement que pour les autres agents utilisés, comme expliqué dans cette section.
+\subsubsection{Gestion des points: \texttt{PointHandler}}
 \label{gestion_points}
+Les points actuels sont aussi stockés et modifiés via cet agent. Cela permet, en fin de partie, de récupérer le nombre de points de chaque joueurs ayant commencé la partie. Comme pour la gestion des positions (\ref{gestion_positions}), nous aurions pu stocker cette donné dans la procédure du joueur (ou en argument de la procédure \texttt{TurnByTurn} en mode tour par tour).
+\subsubsection{Gestion des boxes: \texttt{BoxHandler}}
+\label{gestion_boxes}
+Il est important de tenir le compte du nombre de boîtes encore intactes sur la carte, puisque la partie est considérée comme terminée lorsqu'il n'y a plus aucune de celles-ci sur la carte de jeu. L'agent tient donc un compte du nombre de boxes encore sur la carte, et peut recevoir des notifications d'une explosion de boite. Avant de décrémenter le compte total de boites encore présentes, l'agent vérifie si la boite indiquée par la position donnée est encore sur la carte. Cela peut permettre d'éviter certains problèmes de désynchronisation entre deux explosions de bombes dans le mode simultané. C'est d'ailleurs cet agent qui demande à l'agent de la gestion de la carte de modifier celle-ci (\ref{gestion_map}).
 
+\section{Interopérabilité}
+\section{Extensions}
+\section{Les problèmes rencontrés}
+Nous avons rencontré deux types de problèmes majeurs lors de l'implémentation du projet. Le premier est la manière de récupérer l'état des joueurs, comme leur position ou leur nombre de points. De notre point de vue, il aurait été plus simple de pouvoir demander au joueur de donner sa position actuelle, puisqu'il la stocke de toute manière. Or, ici, nous devons la stocker dans le joueur et dans le contrôleur. Il en est de même pour les points de celui-ci \\ \\
+Le deuxième problème majeur que nous avons rencontré est la gestion de la carte. En effet, celle-ci change au cours de la partie (explosion d'une boite, un bonus récupéré par un joueur,...) et nous avons pris du temps avant de nous rendre compte qu'il était possible de respecter nos volontés en utilisant un agent spécifique pour la carte uniquement par exemple. Nous avons encore eu quelques soucis de synchronisation entre les joueurs et le contrôleur. Par exemple, il arrivait de considérer un joueur comme mort définitivement, alors qu'il avait simplement péri à cause d'une bombe, mais avait encore des vies et n'avait pas encore eu le temps de réaparaitre.
 \end{document}

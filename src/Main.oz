@@ -167,10 +167,16 @@ in
     in 
         case ThePlayersPort of nil then % All the players have played
             NewBombs
+            ResultEndGame
         in
             {Delay 500}
             NewBombs = {ProcessBombs TheBombs}
-            {TurnByTurn PlayersPort NewBombs}
+            {Send EndGamePort getEndGame(ResultEndGame)}
+            if ResultEndGame == false then % Not the end
+                {TurnByTurn PlayersPort NewBombs}
+            else
+                skip % End of the game, we stop
+            end
         [] PortH|PortT then % A player to move
             ID
             AlivePlayers
@@ -273,7 +279,7 @@ in
     end
 
 
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%% FOR THE SIMULTANEOUS %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -321,12 +327,12 @@ in
                     if Value == pointfloor then % Point bonus
                         Result
                     in
-                        {Send MyPort add(point 70 Result)} % Give the point to the player
+                        {Send MyPort add(point 1 Result)} % Give the point to the player
                         {Send WindowPort hidePoint(Pos)}
                         {Wait Result}
                         {Send WindowPort scoreUpdate(ID Result)}
                         {Send MapPort modif(Pos#0)}
-                        {Send PointPort add(ID 70)} % Just for the future
+                        {Send PointPort add(ID 1)} % Just for the future
                         {Loop}
                     elseif Value == bonusfloor then % Bonus, random
                         Rand
