@@ -59,8 +59,8 @@ in
 
 
     %% Implement your controller here
-    WindowPort = {GUI.portWindow} % Cree le port pour la window
-    {Send WindowPort buildWindow} % Envoie la commande pour creer la window
+    WindowPort = {GUI.portWindow} % Create the window port
+    {Send WindowPort buildWindow} % Init the window
     {Delay 10000}
 
     NbPlayers = Input.nbBombers
