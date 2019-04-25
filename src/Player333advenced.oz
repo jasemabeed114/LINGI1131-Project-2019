@@ -492,7 +492,7 @@ in
             Rand2
         in
             if Tmp == 0 then %No SafeMove
-                if {SafeZone pt(x:X y:Y) AllBombes Map} then % Stay at same place to not take any risk
+                if Input.useExtention andthen {SafeZone pt(x:X y:Y) AllBombes Map} then % Stay at same place to not take any risk
                     Action = move(pt(x:X y:Y))
                 else
                     BonusMove Tmp2
