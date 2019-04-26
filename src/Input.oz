@@ -25,7 +25,7 @@ define
    ThinkMin ThinkMax
    TimingBomb TimingBombMin TimingBombMax Fire
 
-   Map2
+   Map1 Map2 MapTests
 in 
 
 
@@ -40,7 +40,10 @@ in
    
    NbRow = 7
    NbColumn = 13
-   Map = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
+
+   Map = Map1
+
+   Map1 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
 	  [1 4 0 3 2 2 2 2 2 3 0 4 1]
 	  [1 0 1 3 1 2 1 2 1 2 1 0 1]
 	  [1 3 2 2 3 2 2 2 2 3 2 3 1]
@@ -55,16 +58,21 @@ in
 	  [1 0 1 0 0 0 0 0 0 1 1 0 1]
 	  [1 4 0 1 0 0 0 0 0 1 0 4 1]
 	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
+   
+   MapTests = [[1 1 1 1 1]
+               [1 4 1 2 1]
+               [1 0 1 4 1]
+               [1 1 1 1 1]]
 
 %%%% Players description %%%%
 
-   NbBombers = 2
-   Bombers = [player333advenced player000bomber]
-   ColorBombers = [yellow red]
+   NbBombers = 4
+   Bombers = [player333advenced player333advenced player333advenced player333advenced]
+   ColorBombers = [yellow red green blue]
 
 %%%% Parameters %%%%
 
-   NbLives = 10
+   NbLives = 5
    NbBombs = 1
  
    ThinkMin = 500  % in millisecond

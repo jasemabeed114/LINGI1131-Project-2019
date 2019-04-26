@@ -248,7 +248,7 @@ in
                                 {Wait Result}
                                 {Send WindowPort scoreUpdate(ID Result)}
                                 {Send MapPort modif(Pos#0)}
-                                {Send PointPort add(ID 1)} % Just for the future
+                                {Send PointPort add(ID 10)} % Just for the future
                                 {TurnByTurn PortT TheBombs}
                             elseif Rand == 1 then % This is a bomb
                                 {Send PortH add(bomb 1 _)}
@@ -367,8 +367,8 @@ in
             ID
             AlivePlayers
         in
-            %TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
-            TimeWait = 500
+            TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
+            %TimeWait = 500
             {Delay TimeWait}
             {Send EndGamePort getAlive(AlivePlayers)}
             {Send MyPort getState(ID _)}
@@ -409,7 +409,7 @@ in
                                 {Wait Result}
                                 {Send WindowPort scoreUpdate(ID Result)}
                                 {Send MapPort modif(Pos#0)}
-                                {Send PointPort add(ID 1)} % Just for the future
+                                {Send PointPort add(ID 10)} % Just for the future
                                 {Loop}
                             elseif Rand == 1 then % This is a bomb
                                 {Send MyPort add(bomb 1 _)}
@@ -868,6 +868,8 @@ in
                 case L of nil then Acc.2 % Only gives the ID of the winner
                 [] (Points#ID)|T then
                     if Points > Acc.1 then % Current player has more points
+                        {Browser.browse Points#ID}
+                        {Delay 3000}
                         {Loop T Points#ID}
                     else
                         {Loop T Acc}
