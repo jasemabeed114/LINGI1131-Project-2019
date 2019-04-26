@@ -186,7 +186,7 @@ in
                 end
             end
         [] gotHit(ID Result)|T then
-            if MyLives =< 0 then % Was out
+            if MyLives =< 0 orelse MyState == off then % Was out
                 ID = null
                 Result = null
                 {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}

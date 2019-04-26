@@ -6,7 +6,6 @@ import
     Browser
     OS
 define
-    WindowPort
     SpawnPositions
     PlayersPosition
     InitPlayers
@@ -17,19 +16,14 @@ define
 
     GlobalTest
 in
-    WindowPort = {GUI.portWindow} % Create the window port
-    {Send WindowPort buildWindow} % Init the window
-    {Delay 10000}
 
-    {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort}
-
-    thread SpawnPositions = {LookForSpawn Input.map} end
+    thread SpawnPositions = {LookForSpawn Input.map}
 
     {InitPlayers 1 Input.colorsBombers Input.bombers SpawnPositions PlayersPosition PlayersPort}
 
     {InitPlayersSpawnInformation PlayersPort PlayersPosition _}
     {GlobalTest}
-
+    end
     
 
     % Function to look for the spawn positions
@@ -71,8 +65,6 @@ in
                 PlayerPort = {PlayerManager.playerGenerator NameH ID}
                 {Send PlayerPort assignSpawn(PositionH)}
                 {Send PlayerPort spawn(_ Position)}
-                {Send WindowPort initPlayer(ID)}
-                {Send WindowPort spawnPlayer(ID PositionH)}
                 PlayersPosition = Position|PlayersPositionTail
                 PlayersPort     = PlayerPort|PlayersPortTail
                 {InitPlayers NbPlayers-1 ColorT NameT PositionT PlayersPositionTail PlayersPortTail}
@@ -100,18 +92,14 @@ in
      TO EXECUTE THIS TEST, IT IS REQUIRED TO PUT THE NUMBER OF INITIAL BOMS
      TO 0 
      */
-    fun{GlobalTest}
+    proc{GlobalTest}
         fun{TestSpawnBack}
             BoolSpawnBack
             ID Spawn
         in
             {Send PlayersPort.1 spawn(ID Spawn)}
-            if {IsDet ID} andthen {IsDet Spawn} then % Just to be sure that these are bound
-                if ID == null andthen Spawn == null then
-                    BoolSpawnBack = true
-                else
-                    BoolSpawnBack = false
-                end
+            if ID == null andthen Spawn == null then
+                BoolSpawnBack = true
             else
                 BoolSpawnBack = false
             end
@@ -150,7 +138,7 @@ in
             SpawnPositionBack
         in
             {Send PlayersPort.1 gotHit(_ Result)}
-            if Result == Input.nbLives - 1 then
+            if Result.1 == Input.nbLives - 1 then
                 BoolLife = true % The player has correctly decremented his lives by one
             else
                 BoolLife = false
@@ -203,19 +191,15 @@ in
 
             % We send again the death message
             {Send PlayersPort.1 gotHit(ID Result)}
-            if {IsDet ID} andthen {IsDet Result} then % Just to be sure that the test goes on
-                if ID == null andthen Result == null then % Correct
-                    BoolHitBack = true
-                else
-                    BoolHitBack = false
-                end
+            if ID == null andthen Result == null then % Correct
+                BoolHitBack = true
             else
                 BoolHitBack = false
             end
 
             {Send PlayersPort.1 spawn(_ _)}
             {Send PlayersPort.1 getState(_ StateAfter)}
-            if StateAfter == true then % Correct
+            if StateAfter == on then % Correct
                 BoolStateAfter = true
             else
                 BoolStateAfter = false
