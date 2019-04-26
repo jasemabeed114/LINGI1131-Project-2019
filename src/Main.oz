@@ -18,6 +18,7 @@ define
 
 
     Map
+    LookForSpawn
     NbPlayers
     Positions
     PlayersPosition % Port of all the players
@@ -64,8 +65,10 @@ in
     {Delay 10000}
 
     NbPlayers = Input.nbBombers
-
-    Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
+    {Browser.browse hello}
+    %Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
+    thread Positions = {LookForSpawn Input.map} end
+    {Browser.browse fin}
     {Browser.browse PlayersPort}
     {Browser.browse PlayersPosition}
     thread {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort} end
@@ -105,6 +108,31 @@ in
             thread {PointHandler PointStream} end
             {SimultaneousInitLoop PlayersPort}
         end
+    end
+    fun{LookForSpawn Map}
+        fun{LoopLine Line Y X}
+            case Line of nil then nil
+            [] H|T then
+	            if H == 4 then % Spawn
+            	    pt(x:X y:Y)|{LoopLine T Y X+1}
+	             else
+	                {LoopLine T Y X+1}
+	             end
+             end
+         end
+         fun{Loop TheMap Acc Y}
+            case TheMap of nil then Acc
+            [] Line|Rest then % Treat one line at a time
+	             CurrentTreat
+	             Acc2
+              in
+	            CurrentTreat = {LoopLine Line Y 1}
+	            Acc2 = {Append Acc CurrentTreat}
+	            {Loop Rest Acc2 Y+1}
+            end
+        end
+    in
+        {Loop Map nil 1}
     end
     fun{InitPlayersSpawnInformation PlayerPort PlayersPosition}
         case PlayerPort#PlayersPosition

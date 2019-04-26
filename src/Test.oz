@@ -21,7 +21,9 @@ in
     {Send WindowPort buildWindow} % Init the window
     {Delay 10000}
 
-    SpawnPositions = {LookForSpawn}
+    {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort}
+
+    thread SpawnPositions = {LookForSpawn Input.map} end
 
     {InitPlayers 1 Input.colorsBombers Input.bombers SpawnPositions PlayersPosition PlayersPort}
 
@@ -31,30 +33,30 @@ in
     
 
     % Function to look for the spawn positions
-    fun{LookForSpawn}
-        fun{LoopLine Line}
+    fun{LookForSpawn Map}
+        fun{LoopLine Line Y X}
             case Line of nil then nil
             [] H|T then
-                if H == 4 then % Spawn
-                    H|{LoopLine T}
-                else
-                   {LoopLine T}
-                end
-            end
-        end 
-        fun{Loop TheMap Acc}
+	            if H == 4 then % Spawn
+            	    pt(x:X y:Y)|{LoopLine T Y X+1}
+	             else
+	                {LoopLine T Y X+1}
+	             end
+             end
+         end
+         fun{Loop TheMap Acc Y}
             case TheMap of nil then Acc
             [] Line|Rest then % Treat one line at a time
-                CurrentTreat
-                Acc2
-            in
-                CurrentTreat = {LoopLine Line}
-                Acc2 = {Append Acc CurrentTreat}
-                {Loop Rest Acc2}
+	             CurrentTreat
+	             Acc2
+              in
+	            CurrentTreat = {LoopLine Line Y 1}
+	            Acc2 = {Append Acc CurrentTreat}
+	            {Loop Rest Acc2 Y+1}
             end
         end
     in
-        {Loop Input.map nil}
+        {Loop Map nil 1}
     end
 
     proc{InitPlayers NbPlayers ColorPlayers NamePlayers Positions PlayersPosition PlayersPort}
