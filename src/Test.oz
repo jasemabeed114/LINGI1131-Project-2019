@@ -9,15 +9,26 @@ define
     WindowPort
     SpawnPositions
     PlayersPosition
+    InitPlayers
+    InitPlayersSpawnInformation
+    LookForSpawn
     PlayersPort
+    PlayersPosition
+
+    GlobalTest
 in
     WindowPort = {GUI.portWindow} % Create the window port
     {Send WindowPort buildWindow} % Init the window
     {Delay 10000}
 
-    {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort}
-
     SpawnPositions = {LookForSpawn}
+
+    {InitPlayers 1 Input.colorsBombers Input.bombers SpawnPositions PlayersPosition PlayersPort}
+
+    {InitPlayersSpawnInformation PlayersPort PlayersPosition _}
+    {GlobalTest}
+
+    
 
     % Function to look for the spawn positions
     fun{LookForSpawn}
@@ -64,6 +75,18 @@ in
                 PlayersPort     = PlayerPort|PlayersPortTail
                 {InitPlayers NbPlayers-1 ColorT NameT PositionT PlayersPositionTail PlayersPortTail}
             end
+        end
+    end
+
+    fun{InitPlayersSpawnInformation PlayerPort PlayersPosition}
+        case PlayerPort#PlayersPosition
+        of nil#nil then nil
+        [](PortH|PortT)#(PositionH|PositionT) then 
+            ID 
+        in
+            {Send PortH getId(ID)}
+            {Wait ID}
+            ID|{InitPlayersSpawnInformation PortT PositionT}
         end
     end
 
@@ -132,7 +155,7 @@ in
             end
 
             {Send PlayersPort.1 getState(_ StateBefore)}
-            if State == off then % Correct
+            if StateBefore == off then % Correct
                 BoolStateBefore = true
             else
                 BoolStateBefore = false
@@ -147,7 +170,7 @@ in
 
             % Now check that the state is on
             {Send PlayersPort.1 getState(_ StateAfter)}
-            if State == on then % Correct
+            if StateAfter == on then % Correct
                 BoolStateAfter = true
             else
                 BoolStateAfter = false
