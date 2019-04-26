@@ -6,18 +6,25 @@ import
     Browser
     OS
 define
-    WindowPort
     SpawnPositions
     PlayersPosition
+    InitPlayers
+    InitPlayersSpawnInformation
+    LookForSpawn
     PlayersPort
+    PlayersPosition
+
+    GlobalTest
 in
-    WindowPort = {GUI.portWindow} % Create the window port
-    {Send WindowPort buildWindow} % Init the window
-    {Delay 10000}
 
-    {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort}
+    thread SpawnPositions = {LookForSpawn Input.map}
 
-    thread SpawnPositions = {LookForSpawn Input.map} end
+    {InitPlayers 1 Input.colorsBombers Input.bombers SpawnPositions PlayersPosition PlayersPort}
+
+    {InitPlayersSpawnInformation PlayersPort PlayersPosition _}
+    {GlobalTest}
+    end
+    
 
     % Function to look for the spawn positions
     fun{LookForSpawn Map}
@@ -58,12 +65,22 @@ in
                 PlayerPort = {PlayerManager.playerGenerator NameH ID}
                 {Send PlayerPort assignSpawn(PositionH)}
                 {Send PlayerPort spawn(_ Position)}
-                {Send WindowPort initPlayer(ID)}
-                {Send WindowPort spawnPlayer(ID PositionH)}
                 PlayersPosition = Position|PlayersPositionTail
                 PlayersPort     = PlayerPort|PlayersPortTail
                 {InitPlayers NbPlayers-1 ColorT NameT PositionT PlayersPositionTail PlayersPortTail}
             end
+        end
+    end
+
+    fun{InitPlayersSpawnInformation PlayerPort PlayersPosition}
+        case PlayerPort#PlayersPosition
+        of nil#nil then nil
+        [](PortH|PortT)#(PositionH|PositionT) then 
+            ID 
+        in
+            {Send PortH getId(ID)}
+            {Wait ID}
+            ID|{InitPlayersSpawnInformation PortT PositionT}
         end
     end
 
@@ -75,18 +92,14 @@ in
      TO EXECUTE THIS TEST, IT IS REQUIRED TO PUT THE NUMBER OF INITIAL BOMS
      TO 0 
      */
-    fun{GlobalTest}
+    proc{GlobalTest}
         fun{TestSpawnBack}
             BoolSpawnBack
             ID Spawn
         in
             {Send PlayersPort.1 spawn(ID Spawn)}
-            if {IsDet ID} andthen {IsDet Spawn} then % Just to be sure that these are bound
-                if ID == null andthen Spawn == null then
-                    BoolSpawnBack = true
-                else
-                    BoolSpawnBack = false
-                end
+            if ID == null andthen Spawn == null then
+                BoolSpawnBack = true
             else
                 BoolSpawnBack = false
             end
@@ -125,14 +138,14 @@ in
             SpawnPositionBack
         in
             {Send PlayersPort.1 gotHit(_ Result)}
-            if Result == Input.nbLives - 1 then
+            if Result.1 == Input.nbLives - 1 then
                 BoolLife = true % The player has correctly decremented his lives by one
             else
                 BoolLife = false
             end
 
             {Send PlayersPort.1 getState(_ StateBefore)}
-            if State == off then % Correct
+            if StateBefore == off then % Correct
                 BoolStateBefore = true
             else
                 BoolStateBefore = false
@@ -147,7 +160,7 @@ in
 
             % Now check that the state is on
             {Send PlayersPort.1 getState(_ StateAfter)}
-            if State == on then % Correct
+            if StateAfter == on then % Correct
                 BoolStateAfter = true
             else
                 BoolStateAfter = false
@@ -178,19 +191,15 @@ in
 
             % We send again the death message
             {Send PlayersPort.1 gotHit(ID Result)}
-            if {IsDet ID} andthen {IsDet Result} then % Just to be sure that the test goes on
-                if ID == null andthen Result == null then % Correct
-                    BoolHitBack = true
-                else
-                    BoolHitBack = false
-                end
+            if ID == null andthen Result == null then % Correct
+                BoolHitBack = true
             else
                 BoolHitBack = false
             end
 
             {Send PlayersPort.1 spawn(_ _)}
             {Send PlayersPort.1 getState(_ StateAfter)}
-            if StateAfter == true then % Correct
+            if StateAfter == on then % Correct
                 BoolStateAfter = true
             else
                 BoolStateAfter = false
@@ -231,17 +240,85 @@ in
             BoolBomb andthen BoolPoint
         end
 
+        fun{TestGiveExtensions}
+            ResultShieldBefore
+            ResultAddLife
+            ResultID
+            ResultDeath
+            ResultShieldAfter
+            ResultShieldAfterDie
+            ResultShieldEnd
+            
+            BoolShieldBefore
+            BoolAddLife
+            BoolGotHitWithShield
+            BoolShieldAfterDie
+            BoolShieldEnd
+        in
+            % Send an additionnal life and a shield
+            {Send PlayersPort.1 add(life 1 ResultAddLife)}
+            {Send PlayersPort.1 add(shield 1 ResultShieldBefore)}
+
+            % Test if the returned values are correct
+            if ResultAddLife == (Input.nbLives - 2 + 1) then % Correct
+                BoolAddLife = true
+            else
+                BoolAddLife = false
+            end
+
+            if ResultShieldBefore == 1 then % Correct
+                BoolShieldBefore = true
+            else
+                BoolShieldBefore = false
+            end
+
+            % Tell the player he got hit
+            % ID and Result should be null because of the shield
+            {Send PlayersPort.1 gotHit(ResultID ResultDeath)}
+            if ResultID == null andthen ResultDeath == null then % Correct
+                BoolGotHitWithShield = true
+            else
+                BoolGotHitWithShield = false
+            end
+
+            % Give back 2 shield to be sure that the player has now 2 shield
+            {Send PlayersPort.1 add(shield 2 ResultShieldAfterDie)}
+            if ResultShieldAfterDie == 2 then % Correct
+                BoolShieldAfterDie = true
+            else
+                BoolShieldAfterDie = false
+            end
+
+            % Take the shields
+            {Send PlayersPort.1 add(shield ~2 ResultShieldEnd)}
+            if ResultShieldEnd == 0 then
+                BoolShieldEnd = true
+            else
+                BoolShieldEnd = false
+            end
+
+            BoolShieldBefore andthen BoolAddLife andthen BoolGotHitWithShield andthen BoolShieldAfterDie andthen BoolShieldEnd
+        end
+
         SpawnBackBool
         OneMoveBool
         DieAndRespawnBool
         DieBorderCaseBool
         GivePointsAndBombsBool
+
+        ExtensionsAddBool
     in
         SpawnBackBool = {TestSpawnBack}
         OneMoveBool = {TestOneMove}
         DieAndRespawnBool = {TestDieAndRespawn}
         DieBorderCaseBool = {TestDieBorderCase}
         GivePointsAndBombsBool = {TestGivePointsAndBombs}
+        
+        if Input.useExtention then % Use extensions, test the extensions
+            ExtensionsAddBool = {TestGiveExtensions}
+        else
+            ExtensionsAddBool = none
+        end
 
         if SpawnBackBool then
             {Browser.browse 'PASSED: The player respect the case when it is on the board and we ask him to spawn again'}
@@ -275,24 +352,20 @@ in
             {Browser.browse 'The player does not react correctly when we give him points and bombs'}
         end
 
+        if ExtensionsAddBool \= none then % Use the extensions
+            if ExtensionsAddBool then
+                {Browser.browse 'PASSED: The player acts correctly regarding the extention addings'}
+            else
+                {Browser.browse 'The player does not act correctly regarding the extention addings'}
+            end
+        end
+
 
 
 
 
     
     end
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
