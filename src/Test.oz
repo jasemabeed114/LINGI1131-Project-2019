@@ -240,17 +240,85 @@ in
             BoolBomb andthen BoolPoint
         end
 
+        fun{TestGiveExtensions}
+            ResultShieldBefore
+            ResultAddLife
+            ResultID
+            ResultDeath
+            ResultShieldAfter
+            ResultShieldAfterDie
+            ResultShieldEnd
+            
+            BoolShieldBefore
+            BoolAddLife
+            BoolGotHitWithShield
+            BoolShieldAfterDie
+            BoolShieldEnd
+        in
+            % Send an additionnal life and a shield
+            {Send PlayersPort.1 add(life 1 ResultAddLife)}
+            {Send PlayersPort.1 add(shield 1 ResultShieldBefore)}
+
+            % Test if the returned values are correct
+            if ResultAddLife == (Input.nbLives - 2 + 1) then % Correct
+                BoolAddLife = true
+            else
+                BoolAddLife = false
+            end
+
+            if ResultShieldBefore == 1 then % Correct
+                BoolShieldBefore = true
+            else
+                BoolShieldBefore = false
+            end
+
+            % Tell the player he got hit
+            % ID and Result should be null because of the shield
+            {Send PlayersPort.1 gotHit(ResultID ResultDeath)}
+            if ResultID == null andthen ResultDeath == null then % Correct
+                BoolGotHitWithShield = true
+            else
+                BoolGotHitWithShield = false
+            end
+
+            % Give back 2 shield to be sure that the player has now 2 shield
+            {Send PlayersPort.1 add(shield 2 ResultShieldAfterDie)}
+            if ResultShieldAfterDie == 2 then % Correct
+                BoolShieldAfterDie = true
+            else
+                BoolShieldAfterDie = false
+            end
+
+            % Take the shields
+            {Send PlayersPort.1 add(shield ~2 ResultShieldEnd)}
+            if ResultShieldEnd == 0 then
+                BoolShieldEnd = true
+            else
+                BoolShieldEnd = false
+            end
+
+            BoolShieldBefore andthen BoolAddLife andthen BoolGotHitWithShield andthen BoolShieldAfterDie andthen BoolShieldEnd
+        end
+
         SpawnBackBool
         OneMoveBool
         DieAndRespawnBool
         DieBorderCaseBool
         GivePointsAndBombsBool
+
+        ExtensionsAddBool
     in
         SpawnBackBool = {TestSpawnBack}
         OneMoveBool = {TestOneMove}
         DieAndRespawnBool = {TestDieAndRespawn}
         DieBorderCaseBool = {TestDieBorderCase}
         GivePointsAndBombsBool = {TestGivePointsAndBombs}
+        
+        if Input.useExtention then % Use extensions, test the extensions
+            ExtensionsAddBool = {TestGiveExtensions}
+        else
+            ExtensionsAddBool = none
+        end
 
         if SpawnBackBool then
             {Browser.browse 'PASSED: The player respect the case when it is on the board and we ask him to spawn again'}
@@ -282,6 +350,14 @@ in
             {Browser.browse 'PASSED: The player reacts correctly when we give him points and bombs'}
         else
             {Browser.browse 'The player does not react correctly when we give him points and bombs'}
+        end
+
+        if ExtensionsAddBool \= none then % Use the extensions
+            if ExtensionsAddBool then
+                {Browser.browse 'PASSED: The player acts correctly regarding the extention addings'}
+            else
+                {Browser.browse 'The player does not act correctly regarding the extention addings'}
+            end
         end
 
 
