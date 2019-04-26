@@ -32,7 +32,7 @@ in
 %%%% Style of game %%%%
    
    IsTurnByTurn = false
-   UseExtention = true %set to false for interop
+   UseExtention = false %set to false for interop
    PrintOK = true
 
 
@@ -59,13 +59,13 @@ in
 %%%% Players description %%%%
 
    NbBombers = 2
-   Bombers = [player001random player000bomber]
+   Bombers = [player333advenced player000bomber]
    ColorBombers = [yellow red]
 
 %%%% Parameters %%%%
 
    NbLives = 10
-   NbBombs = 0
+   NbBombs = 1
  
    ThinkMin = 500  % in millisecond
    ThinkMax = 2000 % in millisecond
