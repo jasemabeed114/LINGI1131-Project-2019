@@ -4,6 +4,8 @@ import
    Input
    Browser
    Projet2019util
+   OS
+   
 export
    portWindow:StartWindow
 define
@@ -19,6 +21,12 @@ define
    
    Squares
    Items
+   Fire
+   Bomb
+   Gnd
+   Wall
+   Spn
+   Path
    DrawMap
    PrepareMap
 
@@ -75,12 +83,19 @@ in
 
    
 %%%%% Squares of path and wall
-   Squares = square(0:label(text:"" width:1 height:1 bg:c(0 0 204))
-		    1:label(text:"" borderwidth:5 relief:raised width:1 height:1 bg:c(0 0 0))
-		    2:label(text:"" width:1 height:1 bg:c(0 0 204))
-		    3:label(text:"" width:1 height:1 bg:c(0 0 204))
-		    4:label(text:"" width:1 height:1 bg:c(0 150 150))
+   Path={OS.getCWD}
+   Fire = {QTk.newImage photo(url:Path#"/fire.gif")}
+   Bomb = {QTk.newImage photo(url:Path#"/bomb.gif")}
+   Gnd = {QTk.newImage photo(url:Path#"/background_tile.gif")}
+   Wall = {QTk.newImage photo(url:Path#"/solid_block.gif")} 
+   Spn = {QTk.newImage photo(url:Path#"/spawn_tile.gif")} 
+   Squares = square(0:label(text:"" width:1 height:1 image:Gnd)
+		    1:label(text:"" width:1 height:1 image:Wall)
+		    2:label(text:"" width:1 height:1 image:Gnd)
+		    3:label(text:"" width:1 height:1 image:Gnd)
+		    4:label(text:"" width:1 height:1 image:Spn)
 		   )
+   
    Items = items(boxpoint:fun{$ Handle} label(text:"" borderwidth:2 relief:raised width:3 height:2 bg:c(139 69 19) handle:Handle) end 
 		 boxbonus:fun{$ Handle} label(text:"" borderwidth:2 relief:raised width:3 height:2 bg:c(210 105 30) handle:Handle) end 
 		 point:fun{$ Handle} label(text:"" height:1 width:1 handle:Handle bg:white) end 
@@ -172,7 +187,7 @@ in
       Handle HandleLife HandleScore Id Color LabelPlayer LabelLife LabelScore
    in
       bomber(id:Id color:Color name:_) = ID
-      LabelPlayer = label(text:"P" handle:Handle borderwidth:5 relief:raised bg:Color ipadx:5 ipady:5)
+      LabelPlayer = label(text:"(°^°)" handle:Handle borderwidth:2 relief:raised bg:Color ipadx:5 ipady:5)
       LabelLife = label(text:Input.nbLives borderwidth:5 handle:HandleLife relief:solid bg:Color ipadx:5 ipady:5)
       LabelScore = label(text:0 borderwidth:5 handle:HandleScore relief:solid bg:Color ipadx:5 ipady:5)
       {Grid.grid configure(LabelPlayer row:0 column:0 sticky:wesn)}
