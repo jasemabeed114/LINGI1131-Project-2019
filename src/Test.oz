@@ -73,9 +73,25 @@ in
      1 from cardinal positions from the initial spawn position we gave him
 
      TO EXECUTE THIS TEST, IT IS REQUIRED TO PUT THE NUMBER OF INITIAL BOMS
-     TO 0 AND TO USE THE SPECIAL MAP FOR THE TESTS (SEE Input.oz)
+     TO 0 
      */
     fun{GlobalTest}
+        fun{TestSpawnBack}
+            BoolSpawnBack
+            ID Spawn
+        in
+            {Send PlayersPort.1 spawn(ID Spawn)}
+            if {IsDet ID} andthen {IsDet Spawn} then % Just to be sure that these are bound
+                if ID == null andthen Spawn == null then
+                    BoolSpawnBack = true
+                else
+                    BoolSpawnBack = false
+                end
+            else
+                BoolSpawnBack = false
+            end
+        end
+
         fun{TestOneMove}
             Action
             InitialPositionPlayerOne
@@ -97,9 +113,16 @@ in
             end
         end
 
-        fun{TestGoodRespawn}
+        fun{TestDieAndRespawn}
             Result
             BoolLife
+
+            StateBefore
+            BoolStateBefore
+            StateAfter
+            BoolStateAfter
+            BoolPosition
+            SpawnPositionBack
         in
             {Send PlayersPort.1 gotHit(_ Result)}
             if Result == Input.nbLives - 1 then
@@ -107,18 +130,152 @@ in
             else
                 BoolLife = false
             end
-            
 
+            {Send PlayersPort.1 getState(_ StateBefore)}
+            if State == off then % Correct
+                BoolStateBefore = true
+            else
+                BoolStateBefore = false
+            end
+
+            {Send PlayersPort.1 spawn(_ SpawnPositionBack)}
+            if SpawnPositionBack.x == SpawnPositions.1.x andthen SpawnPositionBack.y == SpawnPositions.1.y then
+                BoolPosition = true
+            else
+                BoolPosition = false
+            end
+
+            % Now check that the state is on
+            {Send PlayersPort.1 getState(_ StateAfter)}
+            if State == on then % Correct
+                BoolStateAfter = true
+            else
+                BoolStateAfter = false
+            end
+
+            BoolLife andthen BoolPosition andthen BoolStateBefore andthen BoolStateAfter
+        end
+
+        /*
+            This function tests if the player sends the correct informations when
+            He is already dead and we tell him that he is dead again
+            ID and Result should be bounded to null in this case
+         */
+        fun{TestDieBorderCase}
+            ID Result
+            StateBefore BoolStateBefore
+            BoolHitBack
+            StateAfter BoolStateAfter
+        in
+            {Send PlayersPort.1 gotHit(_ _)} % Tell the player he is dead
+            % Should be off now : already verified before but we still do it now
+            {Send PlayersPort.1 getState(_ StateBefore)}
+            if StateBefore == off then % Correct
+                BoolStateBefore = true
+            else
+                BoolStateBefore = false
+            end
+
+            % We send again the death message
+            {Send PlayersPort.1 gotHit(ID Result)}
+            if {IsDet ID} andthen {IsDet Result} then % Just to be sure that the test goes on
+                if ID == null andthen Result == null then % Correct
+                    BoolHitBack = true
+                else
+                    BoolHitBack = false
+                end
+            else
+                BoolHitBack = false
+            end
+
+            {Send PlayersPort.1 spawn(_ _)}
+            {Send PlayersPort.1 getState(_ StateAfter)}
+            if StateAfter == true then % Correct
+                BoolStateAfter = true
+            else
+                BoolStateAfter = false
+            end
+
+            BoolStateBefore andthen BoolStateAfter andthen BoolHitBack
+        end
+
+        fun{TestGivePointsAndBombs}
+            ResultBomb1
+            ResultPoint5
+
+            ResultBomb3
+            ResultPoint7
+
+            BoolBomb
+            BoolPoint
+        in
+            % Initially, the player has 0 bomb and has no points
+            {Send PlayersPort.1 add(bomb 1 ResultBomb1)}
+            {Send PlayersPort.1 add(point 5 ResultPoint5)}
+
+            {Send PlayersPort.1 add(bomb 2 ResultBomb3)}
+            {Send PlayersPort.1 add(point 2 ResultPoint7)}
+
+            if ResultBomb1 == 1 andthen ResultBomb3 == 3 then % Correct
+                BoolBomb = true
+            else
+                BoolBomb = false
+            end
+
+            if ResultPoint5 == 5 andthen ResultPoint7 == 7 then % Correct
+                BoolPoint = true
+            else
+                BoolPoint = false
+            end
+
+            BoolBomb andthen BoolPoint
+        end
+
+        SpawnBackBool
         OneMoveBool
+        DieAndRespawnBool
+        DieBorderCaseBool
+        GivePointsAndBombsBool
     in
+        SpawnBackBool = {TestSpawnBack}
         OneMoveBool = {TestOneMove}
+        DieAndRespawnBool = {TestDieAndRespawn}
+        DieBorderCaseBool = {TestDieBorderCase}
+        GivePointsAndBombsBool = {TestGivePointsAndBombs}
+
+        if SpawnBackBool then
+            {Browser.browse 'PASSED: The player respect the case when it is on the board and we ask him to spawn again'}
+        else
+            {Browser.browse 'The player does not respect the case when it is on the board and we ask him to spawn again'}
+        end
+
         if OneMoveBool == false then
             % Wrong test
             {Browser.browse 'The player does not respect the initial spawn of the condition to move'}
         else
             % Good
-            {Browser.browse 'The player respect the condition of moving from one position'}
+            {Browser.browse 'PASSED: The player respect the condition of moving from one position'}
         end
+
+        if DieAndRespawnBool then
+            {Browser.browse 'PASSED: The player correctly dies and respawn'}
+        else
+            {Browser.browse 'The player does not correctly die and respawn'}
+        end
+
+        if DieBorderCaseBool then
+            {Browser.browse 'PASSED: The player correctly reacts when he is dead and we ask him to die again'}
+        else
+            {Browser.browse 'The player does not correctly react when he is dead and we ask him to die again'}
+        end
+
+        if GivePointsAndBombsBool then
+            {Browser.browse 'PASSED: The player reacts correctly when we give him points and bombs'}
+        else
+            {Browser.browse 'The player does not react correctly when we give him points and bombs'}
+        end
+
+
 
 
 
