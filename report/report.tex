@@ -18,7 +18,7 @@
 
 \section{Introduction}
 Ce rapport concerne le projet pour le cours LINGI1131 - Concepts de langages de programmation (\emph{Computer languages concepts}). \\ \\
-Dans un premier temps, en ce qui concerne la partie obligatoire, nous avons effectué tout ce qui était demandé. Des explications sur la structure de notre implémentation de notre contrôleur et de nos joueurs concerne la première partie de notre rapport. Dans un second temps, nous avons ajouté quelques extensions à notre travail. Tout d'abord, nous avons ajouté les deux bonus supplémentaires conseillés lorsqu'un joueur en ramasse un sur le terrain de jeu: le bouclier et la vie supplémentaire. Ensuite, nous avons modifié à notre guise le \texttt{GUI} afin de le rendre plus ludique et plus approprié à un jeu lugubre et mortel tel que le \emph{Bomberman}. \textbf{AJOUTER ICI LES AUTRES BONUS EFFECTUES!}.
+Dans un premier temps, en ce qui concerne la partie obligatoire, nous avons effectué tout ce qui était demandé. Des explications sur la structure de notre implémentation de notre contrôleur et de nos joueurs concerne la première partie de notre rapport. Dans un second temps, nous avons ajouté quelques extensions à notre travail. Tout d'abord, nous avons ajouté les deux bonus supplémentaires conseillés lorsqu'un joueur en ramasse un sur le terrain de jeu: le bouclier et la vie supplémentaire. Ensuite, nous avons modifié à notre guise le \texttt{GUI} afin de le rendre plus ludique et plus approprié à un jeu lugubre et mortel tel que le \emph{Bomberman}. Enfin, nous avons aussi créé notre propre suite de tests, qui teste quelques cas triviaux et particulier du comportement attendu des joueurs.
 
 \section{Contrôleur \texttt{Main}}
 Notre contrôleur est séparé en deux parties: la gestion des évènements et la gestion des joueurs. Faire de la sorte nous permet d'éviter de dupliquer du code pour le mode de jeu tour par tour, et le mode simultanée. Ainsi, les seules différences notables entre ces deux modes de jeu se situent au niveau de la gestion des joueuers - la gestion des évènements est donc identique peu importe le mode de jeu. Toutes les fonctions/procédures référencées dans cette section sont relatives au fichier \texttt{Main.oz}.
@@ -72,7 +72,32 @@ Les points actuels sont aussi stockés et modifiés via cet agent. Cela permet, 
 Il est important de tenir le compte du nombre de boîtes encore intactes sur la carte, puisque la partie est considérée comme terminée lorsqu'il n'y a plus aucune de celles-ci sur la carte de jeu. L'agent tient donc un compte du nombre de boxes encore sur la carte, et peut recevoir des notifications d'une explosion de boite. Avant de décrémenter le compte total de boites encore présentes, l'agent vérifie si la boite indiquée par la position donnée est encore sur la carte. Cela peut permettre d'éviter certains problèmes de désynchronisation entre deux explosions de bombes dans le mode simultané. C'est d'ailleurs cet agent qui demande à l'agent de la gestion de la carte de modifier celle-ci (\ref{gestion_map}).
 
 \section{Interopérabilité}
+Nous avons effectué des tests d'interopérabilité avec 5 groupes différents. Grâce aux plateformes déployées par d'autres étudiants, nous avons pu vérifier si notre contrôleur fonctionnait avec ces autres joueurs. Pour chacun des joueurs testés qui fonctionnaient avec notre contrôleur, nous avons aussi lancé notre propre suite de tests.
+\begin{itemize}
+	\item \texttt{Player021IA2} de Corentin de Mêeus. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
+	\item \texttt{Player005Umberto} de Brieuc de Voghel. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
+	\item \texttt{Player105Alice} de Cyril Maréchal. Aucun problème rencontré lors des tests d'interopérabilité. Mais ce joueur n'a pas passé tous nos tests: le joueur ne se comporte pas correctement lorsqu'il est mort et qu'on lui indique (par erreur) à nouveau qu'il est mort.
+	\item \texttt{Player022smart} de Adrien Lauwers. Impossible de faire tourner ce joueur avec notre contrôleur. Sur la plateforme déployée, nous avons vu que nous n'étions pas les seuls à avoir un problème avec de joueur.
+	\item \texttt{Player106noob} de Matthieu Villebrun. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
+\end{itemize}
 \section{Extensions}
+Trois types d'extensions ont été ajoutés à notre travail:
+\begin{itemize}
+	\item Bonus: Comme dit dans l'introduction, nous avons ajouté les boucliers et les vies additionnelles comme bonus des boites "bonus" de la carte.
+	\item GUI: nous avons modifié à notre guise le \emph{GUI}. Chaque joueur a une petite image; des icônes pour les bombes, le feu, les bonus et points ont été ajoutées; le terrain de jeu a aussi été changé.
+	\item Tests: nous avons créé une suite de tests (\texttt{Test.oz}). Cette série de tests vérifie d'abord quelques opérations triviales:
+		\begin{itemize}
+			\item Faire un déplacement dans une zone autorisée
+			\item Recevoir des points/bombes et retourner le bon compte total
+			\item Mourir et réapparaitre au bon endroit (spawn de départ)
+			\item Recevoir les vies additionnelles; recevoir un bouclier et l'utiliser lorsque le joueur a été notifié comme touché
+		\end{itemize}
+	En plus de cela, nous avons aussi testé quelques \emph{border cases}:
+		\begin{itemize}
+			\item Le joueur est déjà mort et est à nouveau notifié de sa mort: il doit \emph{bind} les identificateurs reçus à \texttt{null}
+			
+		\end{itemize}
+\end{itemize}
 \section{Les problèmes rencontrés}
 Nous avons rencontré deux types de problèmes majeurs lors de l'implémentation du projet. Le premier est la manière de récupérer l'état des joueurs, comme leur position ou leur nombre de points. De notre point de vue, il aurait été plus simple de pouvoir demander au joueur de donner sa position actuelle, puisqu'il la stocke de toute manière. Or, ici, nous devons la stocker dans le joueur et dans le contrôleur. Il en est de même pour les points de celui-ci \\ \\
 Le deuxième problème majeur que nous avons rencontré est la gestion de la carte. En effet, celle-ci change au cours de la partie (explosion d'une boite, un bonus récupéré par un joueur,...) et nous avons pris du temps avant de nous rendre compte qu'il était possible de respecter nos volontés en utilisant un agent spécifique pour la carte uniquement par exemple. Nous avons encore eu quelques soucis de synchronisation entre les joueurs et le contrôleur. Par exemple, il arrivait de considérer un joueur comme mort définitivement, alors qu'il avait simplement péri à cause d'une bombe, mais avait encore des vies et n'avait pas encore eu le temps de réaparaitre.
