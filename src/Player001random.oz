@@ -138,8 +138,10 @@ in
                 TimeWait
             in
 
-                TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
-                {Delay TimeWait}
+                if {Not Input.useExtention} then
+                    TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
+                    {Delay TimeWait}
+                end
 
                 %BombsExploded = {CheckBombsExploded MyBombs MyMap MapBombExploded} % Check to delete the exploded bombs from the map
                 {CreateMoveAdvanced MyMap MyPosition.x MyPosition.y MyBonuses.bomb ActionDo}

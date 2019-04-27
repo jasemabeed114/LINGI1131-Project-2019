@@ -163,9 +163,11 @@ in
                 ActionDo
                 TimeWait
             in
-
-                TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
-                {Delay TimeWait}
+            
+                if {Not Input.useExtention} then
+                    TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
+                    {Delay TimeWait}
+                end
 
                 {CreateMoveAdvanced MyMap MyPosition.x MyPosition.y MyBonuses.bomb AllBombes ActionDo}
                 ID = MyID
