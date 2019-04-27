@@ -107,7 +107,7 @@ in
    
    Items = items(boxpoint:fun{$ Handle} label(text:"" borderwidth:2 relief:raised width:3 height:2 bg:c(139 69 19) handle:Handle) end 
 		 boxbonus:fun{$ Handle} label(text:"" borderwidth:2 relief:raised width:3 height:2 bg:c(210 105 30) handle:Handle) end 
-		 point:fun{$ Handle} label(text:"" ipadx:5 ipady:5 handle:Handle bg:yellow image:Coin) end 
+		 point:fun{$ Handle} label(text:"" ipadx:5 ipady:5 handle:Handle bg:green image:Coin) end 
 		 bonus:fun{$ Handle} label(text:"" ipadx:5 ipady:5 handle:Handle bg:green image:Coffre) end 
 		 bomb:fun{$ Handle} label(text:""  handle:Handle bg:grey ipadx:5 ipady:5 image:Bomb) end 
 		 fire:fun{$ Handle} label(text:""  handle:Handle bg:orange ipadx:5 ipady:5 image:Fire) end 

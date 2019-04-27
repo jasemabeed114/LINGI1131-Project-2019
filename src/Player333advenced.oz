@@ -30,6 +30,10 @@ define
     BonusPositions
     IsBoxToBreak
 
+    Distance
+    Closest
+    OnBomb
+
     CreateMoveAdvanced
 
 in
@@ -441,6 +445,37 @@ in
         {Wait D}
         A orelse B orelse C orelse D
     end
+    fun{Distance X1 Y1 X2 Y2}
+        {Sqrt ({IntToFloat (X1-X2)*(X1-X2)}+{IntToFloat (Y1-Y2)*(Y1-Y2)})}
+    end
+    fun{Closest PosPlayer PosBombs}
+        fun{Help PosPlayer PosBombs Pos}
+            case PosBombs
+            of nil then Pos
+            [] H|T then Val in
+	            Val = {Distance PosPlayer.x PosPlayer.y H.x H.y}
+	            if Val < {Distance PosPlayer.x PosPlayer.y Pos.x Pos.y}
+	            then {Help PosPlayer T H}
+	            else {Help PosPlayer T Pos}
+	            end
+            end
+        end
+    in
+        {Help PosPlayer PosBombs pt(x:100000 y:100000)}
+    end
+    fun{OnBomb PosPlayers PosBombs ClosestBomb}
+        fun{Help PosPlayers PosBombs Pos}
+            case PosPlayers of nil then Pos
+            [] H|T then
+                if(ClosestBomb == {Closest H PosBombs})
+                then {Help T PosBombs H}
+                else {Help T PosBombs Pos}
+                end
+            end
+        end
+    in
+        {Help PosPlayers PosBombs PosPlayers.1}
+    end
 
     proc{CreateMoveAdvanced Map X Y NbBombs AllBombes ?Action}
         % We suppose that tere is at least one possible displacement for the player 
@@ -493,16 +528,83 @@ in
                 if Input.useExtention andthen {SafeZone pt(x:X y:Y) AllBombes Map} then % Stay at same place to not take any risk
                     Action = move(pt(x:X y:Y))
                 else
-                    BonusMove Tmp2
+                    ClosestBomb
                 in
-                    BonusMove = {BonusPositions PossibleMove Map}
-                    Tmp2 = {Length BonusMove}
-                    if Tmp2 == 0 then
-                        Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
-                        Action = move({Nth PossibleMove Rand2})
+                    if {Length PossibleMove} == 1 then Action = move(PossibleMove.1)
                     else
-                        Rand2 = ({OS.rand} mod Tmp2) + 1
-                        Action = move({Nth BonusMove Rand2})
+                    ClosestBomb = {Closest pt(x:X y:Y) AllBombes}
+                    if ClosestBomb == pt(x:X y:Y) then
+                        Action = move({OnBomb PossibleMove AllBombes ClosestBomb})
+                    elseif ClosestBomb.x == X then
+                        if ClosestBomb.y < Y then
+                            if {CheckMove Map X Y+1} then
+                                Action = move(pt(x:X y:Y+1))
+                            elseif {CheckMove Map X+1 Y} andthen {Not {CheckMove Map X-1 Y}} then
+                                Action = move(pt(x:X+1 y:Y))
+                            elseif {CheckMove Map X-1 Y} andthen {Not {CheckMove Map X+1 Y}} then
+                                Action = move(pt(x:X-1 y:Y))
+                            elseif {Not {CheckMove Map X-1 Y}} andthen {Not {CheckMove Map X+1 Y}} then
+                                Action = move(pt(x:X y:Y-1))
+                            else
+                                if({Closest pt(x:X+1 y:Y) AllBombes} == ClosestBomb)
+                                then Action = move(pt(x:X+1 y:Y))
+                                else Action = move(pt(x:X-1 y:Y))
+                                end
+                            end
+                        else
+                            if {CheckMove Map X Y-1} then
+                                Action = move(pt(x:X y:Y-1))
+                            elseif {CheckMove Map X+1 Y} andthen {Not {CheckMove Map X-1 Y}} then
+                                Action = move(pt(x:X+1 y:Y))
+                            elseif {CheckMove Map X-1 Y} andthen {Not {CheckMove Map X+1 Y}} then
+                                Action = move(pt(x:X-1 y:Y))
+                            elseif {Not {CheckMove Map X-1 Y}} andthen {Not {CheckMove Map X+1 Y}} then
+                                Action = move(pt(x:X y:Y+1))
+                            else
+                                if({Closest pt(x:X+1 y:Y) AllBombes} == ClosestBomb)
+                                then Action = move(pt(x:X+1 y:Y))
+                                else Action = move(pt(x:X-1 y:Y))
+                                end
+                            end
+                        end
+                    elseif ClosestBomb.y == Y then
+                        if ClosestBomb.x < X then
+                            if {CheckMove Map X+1 Y} then
+                                Action = move(pt(x:X+1 y:Y))
+                            elseif {CheckMove Map X Y+1} andthen {Not {CheckMove Map X Y-1}} then
+                                Action = move(pt(x:X y:Y+1))
+                            elseif {CheckMove Map X Y-1} andthen {Not {CheckMove Map X Y+1}} then
+                                Action = move(pt(x:X y:Y-1))
+                            elseif {Not {CheckMove Map X Y-1}} andthen {Not {CheckMove Map X Y+1}} then
+                                Action = move(pt(x:X-1 y:Y))
+                            else
+                                if({Closest pt(x:X y:Y+1) AllBombes} == ClosestBomb)
+                                then Action = move(pt(x:X y:Y+1))
+                                else Action = move(pt(x:X y:Y-1))
+                                end
+                            end
+                        else
+                            if {CheckMove Map X-1 Y} then
+                                Action = move(pt(x:X-1 y:Y))
+                            elseif {CheckMove Map X Y+1} andthen {Not {CheckMove Map X Y-1}} then
+                                Action = move(pt(x:X y:Y+1))
+                            elseif {CheckMove Map X Y-1} andthen {Not {CheckMove Map X Y+1}} then
+                                Action = move(pt(x:X y:Y-1))
+                            elseif {Not {CheckMove Map X Y-1}} andthen {Not {CheckMove Map X Y+1}} then
+                                Action = move(pt(x:X+1 y:Y))
+                            else
+                                if({Closest pt(x:X y:Y+1) AllBombes} == ClosestBomb)
+                                then Action = move(pt(x:X y:Y+1))
+                                else Action = move(pt(x:X y:Y-1))
+                                end
+                            end
+                        end
+                    else
+                        Rand2
+                    in
+                        Rand2 = ({OS.rand} mod Tmp) + 1
+                        Action = move({Nth PossibleMove Rand2})
+                    end
                     end
                 end
             else % They are SafeMove
