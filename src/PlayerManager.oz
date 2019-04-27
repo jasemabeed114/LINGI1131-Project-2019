@@ -5,6 +5,11 @@ import
    Player001random
    Player002advenced
    Player333advenced
+   Player021IA2
+   Player005Umberto
+   Player105Alice
+   Player106noob
+   
    %% Add here the name of the functor of a player
    %% Player000name
 export
@@ -18,6 +23,10 @@ in
       [] player001random then {Player001random.portPlayer ID}
       [] player002advenced then {Player002advenced.portPlayer ID}
       [] player333advenced then {Player333advenced.portPlayer ID}
+      [] corentin then {Player021IA2.portPlayer ID}
+      [] brieuc then {Player005Umberto.portPlayer ID}
+      [] cyril then {Player105Alice.portPlayer ID}
+      [] matthieu then {Player106noob.portPlayer ID}
       %% Add here the pattern to recognize the name used in the 
       %% input file and launch the portPlayer function from the functor
       [] player000name then {Player000name.portPlayer ID}

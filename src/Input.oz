@@ -66,8 +66,8 @@ in
 
 %%%% Players description %%%%
 
-   NbBombers = 4
-   Bombers = [player333advenced player333advenced player333advenced player333advenced]
+   NbBombers = 2
+   Bombers = [matthieu player333advenced brieuc cyril]
    ColorBombers = [yellow red green blue]
 
 %%%% Parameters %%%%
