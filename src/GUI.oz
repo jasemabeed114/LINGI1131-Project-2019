@@ -100,10 +100,9 @@ in
 		 boxbonus:fun{$ Handle} label(text:"" borderwidth:2 relief:raised width:3 height:2 bg:c(210 105 30) handle:Handle) end 
 		 point:fun{$ Handle} label(text:"" height:1 width:1 handle:Handle bg:white) end 
 		 bonus:fun{$ Handle} label(text:"" height:1 width:1 handle:Handle bg:green) end 
-		 bomb:fun{$ Handle} label(text:"" height:1 width:1 handle:Handle bg:black) end 
-		 fire:fun{$ Handle} label(text:"" height:1 width:2 handle:Handle bg:red) end 
+		 bomb:fun{$ Handle} label(text:""  handle:Handle ipadx:5 ipady:5 image:Bomb) end 
+		 fire:fun{$ Handle} label(text:""  handle:Handle bg:orange ipadx:5 ipady:5 image:Fire) end 
 		)
-   
 %%%%% Function to draw the map
    proc{DrawMap Grid}
       proc{DrawColumn Column M N}
@@ -187,7 +186,7 @@ in
       Handle HandleLife HandleScore Id Color LabelPlayer LabelLife LabelScore
    in
       bomber(id:Id color:Color name:_) = ID
-      LabelPlayer = label(text:"(°^°)" handle:Handle borderwidth:2 relief:raised bg:Color ipadx:5 ipady:5)
+      LabelPlayer = label(text:"" handle:Handle borderwidth:2 relief:raised bg:Color ipadx:5 ipady:5)
       LabelLife = label(text:Input.nbLives borderwidth:5 handle:HandleLife relief:solid bg:Color ipadx:5 ipady:5)
       LabelScore = label(text:0 borderwidth:5 handle:HandleScore relief:solid bg:Color ipadx:5 ipady:5)
       {Grid.grid configure(LabelPlayer row:0 column:0 sticky:wesn)}
