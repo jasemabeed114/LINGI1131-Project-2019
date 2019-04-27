@@ -363,13 +363,9 @@ in
             end
         end
         proc{Loop}
-            TimeWait
             ID
             AlivePlayers
         in
-            %TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
-            TimeWait = 500
-            {Delay TimeWait}
             {Send EndGamePort getAlive(AlivePlayers)}
             {Send MyPort getState(ID _)}
             if {AmIAlive AlivePlayers ID} then % Alive player

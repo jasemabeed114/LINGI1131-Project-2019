@@ -3,13 +3,12 @@ import
    Input
    Projet2019util
    OS
-   Browser
 export
    portPlayer:StartPlayer
 define   
     StartPlayer
     TreatStream
-    Name = 'Player001random'
+    Name = 'Player333advenced'
 
     SetMapVal
     SetMapValRemoveBonus
@@ -156,12 +155,18 @@ in
             end
         [] doaction(ID Action)|T then % Ask the player for the action
             if MyState == off then
+                %no delay here because the player is off
                 ID = null
                 Action = null
                 {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
             else
                 ActionDo
+                TimeWait
             in
+
+                TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
+                {Delay TimeWait}
+
                 {CreateMoveAdvanced MyMap MyPosition.x MyPosition.y MyBonuses.bomb AllBombes ActionDo}
                 ID = MyID
                 case ActionDo of bomb(Pos) then

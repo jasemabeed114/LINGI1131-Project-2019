@@ -127,12 +127,20 @@ in
             end
         [] doaction(ID Action)|T then % Ask the player for the action
             if MyState == off then 
+                %no delay here because the player is off
+                ID = null
+                Action = null
                 {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs}
             else
                 ActionDo
                 MapBombExploded
                 BombsExploded
+                TimeWait
             in
+
+                TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
+                {Delay TimeWait}
+
                 %BombsExploded = {CheckBombsExploded MyBombs MyMap MapBombExploded} % Check to delete the exploded bombs from the map
                 {CreateMoveAdvanced MyMap MyPosition.x MyPosition.y MyBonuses.bomb ActionDo}
                 ID = MyID
