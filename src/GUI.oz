@@ -27,6 +27,13 @@ define
    Wall
    Spn
    Path
+   Coin
+   Coffre
+   Player_1
+   Player_2
+   Player_3
+   Player_4
+   Players
    DrawMap
    PrepareMap
 
@@ -89,6 +96,8 @@ in
    Gnd = {QTk.newImage photo(url:Path#"/background_tile.gif")}
    Wall = {QTk.newImage photo(url:Path#"/solid_block.gif")} 
    Spn = {QTk.newImage photo(url:Path#"/spawn_tile.gif")} 
+   Coin = {QTk.newImage photo(url:Path#"/coin.gif")} 
+   Coffre = {QTk.newImage photo(url:Path#"/coffre.gif")} 
    Squares = square(0:label(text:"" width:1 height:1 image:Gnd)
 		    1:label(text:"" width:1 height:1 image:Wall)
 		    2:label(text:"" width:1 height:1 image:Gnd)
@@ -98,8 +107,8 @@ in
    
    Items = items(boxpoint:fun{$ Handle} label(text:"" borderwidth:2 relief:raised width:3 height:2 bg:c(139 69 19) handle:Handle) end 
 		 boxbonus:fun{$ Handle} label(text:"" borderwidth:2 relief:raised width:3 height:2 bg:c(210 105 30) handle:Handle) end 
-		 point:fun{$ Handle} label(text:"" height:1 width:1 handle:Handle bg:white) end 
-		 bonus:fun{$ Handle} label(text:"" height:1 width:1 handle:Handle bg:green) end 
+		 point:fun{$ Handle} label(text:"" ipadx:5 ipady:5 handle:Handle bg:yellow image:Coin) end 
+		 bonus:fun{$ Handle} label(text:"" ipadx:5 ipady:5 handle:Handle bg:green image:Coffre) end 
 		 bomb:fun{$ Handle} label(text:""  handle:Handle bg:grey ipadx:5 ipady:5 image:Bomb) end 
 		 fire:fun{$ Handle} label(text:""  handle:Handle bg:orange ipadx:5 ipady:5 image:Fire) end 
 		)
@@ -182,11 +191,17 @@ in
       Res
    end
 %%%%% Init the Player
+   Player_1 = {QTk.newImage photo(url:Path#"/player_1.gif")}
+   Player_2 = {QTk.newImage photo(url:Path#"/player_2.gif")}
+   Player_3 = {QTk.newImage photo(url:Path#"/player_3.gif")}
+   Player_4 = {QTk.newImage photo(url:Path#"/player_4.gif")}
+   Players = [Player_1 Player_2 Player_3 Player_4]
    fun{InitPlayer Grid ID}
       Handle HandleLife HandleScore Id Color LabelPlayer LabelLife LabelScore
+      Choose = {List.nth Players ({OS.rand} mod {List.length Players})+1}
    in
       bomber(id:Id color:Color name:_) = ID
-      LabelPlayer = label(text:"" handle:Handle borderwidth:2 relief:raised bg:Color ipadx:5 ipady:5)
+      LabelPlayer = label(text:"" handle:Handle borderwidth:2 relief:raised bg:Color ipadx:5 ipady:5 image:Choose)
       LabelLife = label(text:Input.nbLives borderwidth:5 handle:HandleLife relief:solid bg:Color ipadx:5 ipady:5)
       LabelScore = label(text:0 borderwidth:5 handle:HandleScore relief:solid bg:Color ipadx:5 ipady:5)
       {Grid.grid configure(LabelPlayer row:0 column:0 sticky:wesn)}
