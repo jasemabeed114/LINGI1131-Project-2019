@@ -3,6 +3,7 @@ import
    Input
    Projet2019util
    OS
+   Browser
 export
    portPlayer:StartPlayer
 define   
@@ -31,56 +32,53 @@ define
 
     CreateMoveAdvanced
 
-    MySpawn
-    MyID
 in
 
     fun{StartPlayer ID}
-        Stream Port OutputStream
+        Stream Port OutputStream MySpawn
     in
-        MyID = ID % Assign the ID, will never change
         thread %% filter to test validity of message sent to the player
             OutputStream = {Projet2019util.portPlayerChecker Name ID Stream}
         end
         {NewPort Stream Port}
         thread
-            {TreatStream OutputStream off MySpawn Input.nbLives 0 bonus(bomb:Input.nbBombs shield:0) Input.map nil nil}
+            {TreatStream OutputStream ID off MySpawn Input.nbLives 0 bonus(bomb:Input.nbBombs shield:0) Input.map nil nil MySpawn}
         end
         Port
     end
 
-    proc{TreatStream Stream MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+    proc{TreatStream Stream MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
         case Stream
         of getId(ID)|T then % Ask for the player ID
             ID = MyID % Bind it
             %% Recursion
-            {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+            {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
         [] getState(ID State)|T then % Ask for the player state
             ID = MyID % Bind the ID
             State = MyState % Bind the state
             %% Recursion
-            {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+            {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
         [] assignSpawn(Pos)|T then
             MySpawn = Pos % Assign the spawn, should never change
-            {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+            {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
         [] spawn(ID Pos)|T then % Ask for the position to spawn
             if MyState == on then % Already on the board
                 ID = null
                 Pos = null
                 %% Recursion
-                {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+                {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
             else % Off the board
                 if MyLives > 0 then % Still have lives
                     % ID and Pos are the same as the assigned as spawn
                     ID = MyID
                     Pos = MySpawn
                     %% Recursion
-                    {TreatStream T on MySpawn MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+                    {TreatStream T MyID on MySpawn MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
                 else % No more lives
                     ID = null
                     Pos = null
                     %% Recursion
-                    {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+                    {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
                 end
             end
         [] add(Type Option Result)|T then % Notify the bomber of recieving an additionnal ”item”
@@ -91,44 +89,44 @@ in
                 case MyBonuses of bonus(bomb:NbBomb shield:NbShield) then
                     Result = NbBomb+Option % return the new value of NbBomb
                     NewBonuses = bonus(bomb:Result shield:NbShield)
-                    {TreatStream T MyState MyPosition MyLives MyPoints NewBonuses MyMap MyBombs AllBombes}
+                    {TreatStream T MyID MyState MyPosition MyLives MyPoints NewBonuses MyMap MyBombs AllBombes MySpawn}
                 end
             [] point then % New Point
                 Result = MyPoints + Option
-                {TreatStream T MyState MyPosition MyLives MyPoints+Option MyBonuses MyMap MyBombs AllBombes}
+                {TreatStream T MyID MyState MyPosition MyLives MyPoints+Option MyBonuses MyMap MyBombs AllBombes MySpawn}
             % Optional Part
             [] life then % New Life 
                 Result = MyLives + Option % return the new value of MyLives
-                {TreatStream T MyState MyPosition Result MyPoints MyBonuses MyMap MyBombs AllBombes}
+                {TreatStream T MyID MyState MyPosition Result MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
             [] shield then % New Shield
                 NewBonuses
             in
                 case MyBonuses of bonus(bomb:NbBomb shield:NbShield) then
                     Result = NbShield+Option % return the new value of NbShield
                     NewBonuses = bonus(bomb:NbBomb shield:Result)
-                    {TreatStream T MyState MyPosition MyLives MyPoints NewBonuses MyMap MyBombs AllBombes}
+                    {TreatStream T MyID MyState MyPosition MyLives MyPoints NewBonuses MyMap MyBombs AllBombes MySpawn}
                 end
             %% Else for the future
             end
         [] info(Message)|T then % Inform the player about some events
             case Message 
             of spawnPlayer(_ _) then
-                {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes} % Do not take care of this information
+                {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn} % Do not take care of this information
             [] movePlayer(_ Pos) then Val in
                 Val = {GetMapVal MyMap Pos.x Pos.y}
                 % If a player is on a bonus/point case, we change this bonus/point case with a simple floor case
                 if Val == 2 orelse Val == 3 orelse Val == 5 orelse Val == 6 then 
                     case Pos of pt(x:X y:Y) then NewMap in
                     NewMap = {SetMapValRemoveBonus MyMap X Y}
-                    {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses NewMap MyBombs AllBombes}
+                    {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses NewMap MyBombs AllBombes MySpawn}
                     end
                 else
-                    {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes} % Same
+                    {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn} % Same
                 end
             [] deadPlayer(_) then
-                {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes} % Do not take care of this information
+                {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn} % Do not take care of this information
             [] bombPlanted(Pos) then
-                {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs Pos|AllBombes} % add Pos of the bombe to AllBombes
+                {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs Pos|AllBombes MySpawn} % add Pos of the bombe to AllBombes
             [] bombExploded(Pos) then
                 MapWithoutTheBomb
                 NewBombs
@@ -137,9 +135,9 @@ in
                 NewBombs = {CheckMyBombExploded MyBombs Pos WasMyBomb}
                 if WasMyBomb then 
                     MapWithoutTheBomb = {SetMapValBombExploded MyMap Pos.x Pos.y}
-                    {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MapWithoutTheBomb NewBombs {Delete AllBombes Pos}} % Same
+                    {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MapWithoutTheBomb NewBombs {Delete AllBombes Pos} MySpawn} % Same
                 else
-                    {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap NewBombs {Delete AllBombes Pos}}
+                    {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap NewBombs {Delete AllBombes Pos} MySpawn}
                 end
             [] boxRemoved(Pos) then
                 case Pos of pt(x:X y:Y) then
@@ -149,14 +147,14 @@ in
                     NewMap
                 in
                     NewMap = {SetMapVal MyMap X Y}
-                    {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses NewMap MyBombs AllBombes}
+                    {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses NewMap MyBombs AllBombes MySpawn}
                 end
             end
         [] doaction(ID Action)|T then % Ask the player for the action
             if MyState == off then
                 ID = null
                 Action = null
-                {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+                {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
             else
                 ActionDo
             in
@@ -171,7 +169,7 @@ in
                     NewBonuses = bonus(bomb:MyBonuses.bomb-1 shield:MyBonuses.shield)
                     NewBombs = Pos|MyBombs
                     MapWithTheBomb = {SetMapValBombPlanted MyMap Pos.x Pos.y}
-                    {TreatStream T MyState MyPosition MyLives MyPoints NewBonuses MapWithTheBomb NewBombs AllBombes}
+                    {TreatStream T MyID MyState MyPosition MyLives MyPoints NewBonuses MapWithTheBomb NewBombs AllBombes MySpawn}
                 [] move(NewPos) then Val in
                     Action = move(NewPos)
                     Val = {GetMapVal MyMap NewPos.x NewPos.y}
@@ -179,9 +177,9 @@ in
                         NewMap
                     in
                         NewMap = {SetMapValRemoveBonus MyMap NewPos.x NewPos.y}
-                        {TreatStream T MyState NewPos MyLives MyPoints MyBonuses NewMap MyBombs AllBombes}
+                        {TreatStream T MyID MyState NewPos MyLives MyPoints MyBonuses NewMap MyBombs AllBombes MySpawn}
                     else
-                        {TreatStream T MyState NewPos MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+                        {TreatStream T MyID MyState NewPos MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
                     end
                 end
             end
@@ -189,7 +187,7 @@ in
             if MyLives =< 0 orelse MyState == off then % Was out
                 ID = null
                 Result = null
-                {TreatStream T MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes}
+                {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
             else
                 if MyBonuses.shield > 0 then % The player had a shield
                     NewBonuses
@@ -197,11 +195,11 @@ in
                     NewBonuses = bonus(bomb:MyBonuses.bomb shield:MyBonuses.shield-1)
                     ID = null
                     Result = null
-                    {TreatStream T MyState MyPosition MyLives MyPoints NewBonuses MyMap MyBombs AllBombes}
+                    {TreatStream T MyID MyState MyPosition MyLives MyPoints NewBonuses MyMap MyBombs AllBombes MySpawn}
                 else % No shield
                     ID = MyID
                     Result = death(MyLives-1)
-                    {TreatStream T off MyPosition MyLives-1 MyPoints MyBonuses MyMap MyBombs AllBombes}
+                    {TreatStream T MyID off MyPosition MyLives-1 MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
                 end
             end
         end

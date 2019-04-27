@@ -100,7 +100,7 @@ in
 		 boxbonus:fun{$ Handle} label(text:"" borderwidth:2 relief:raised width:3 height:2 bg:c(210 105 30) handle:Handle) end 
 		 point:fun{$ Handle} label(text:"" height:1 width:1 handle:Handle bg:white) end 
 		 bonus:fun{$ Handle} label(text:"" height:1 width:1 handle:Handle bg:green) end 
-		 bomb:fun{$ Handle} label(text:""  handle:Handle ipadx:5 ipady:5 image:Bomb) end 
+		 bomb:fun{$ Handle} label(text:""  handle:Handle bg:grey ipadx:5 ipady:5 image:Bomb) end 
 		 fire:fun{$ Handle} label(text:""  handle:Handle bg:orange ipadx:5 ipady:5 image:Fire) end 
 		)
 %%%%% Function to draw the map
