@@ -10,11 +10,9 @@ define
    StartPlayer
    TreatStream
    SetMapVal
-   SetMapValWithValue
    CreateMove
    CreateMoveAdvanced
    CheckMove
-   CheckMap
    SetMapValBombPlanted
    SetMapValBombExploded
    GetMapVal
@@ -32,7 +30,7 @@ in
             OutputStream = {Projet2019util.portPlayerChecker Name ID Stream}
         end
         {NewPort Stream Port}
-        thread Pos in
+        thread
             {TreatStream OutputStream ID off MySpawn Input.nbLives 0 bonus(bomb:Input.nbBombs shield:0) Input.map nil}
         end
         Port
@@ -94,13 +92,13 @@ in
             %% Else for the future
             end
         [] info(Message)|T then % Player receives a message
-            case Message of spawnPlayer(ID Pos) then
+            case Message of spawnPlayer(_ _) then
                 {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs} % Do not take care of this information
-            [] movePlayer(ID Pos) then
+            [] movePlayer(_ _) then
                 {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs} % Same
-            [] deadPlayer(ID) then
+            [] deadPlayer(_) then
                 {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs} % Same
-            [] bombPlanted(Pos) then
+            [] bombPlanted(_) then
                 {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs} % Same
             [] bombExploded(Pos) then
                 MapWithoutTheBomb
@@ -133,8 +131,6 @@ in
                 {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs}
             else
                 ActionDo
-                MapBombExploded
-                BombsExploded
                 TimeWait
             in
 
