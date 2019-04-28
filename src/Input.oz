@@ -32,7 +32,7 @@ in
 %%%% Style of game %%%%
    
    IsTurnByTurn = false
-   UseExtention = false %set to false for interop
+   UseExtention = true %set to false for interop
    PrintOK = true
 
 
@@ -67,7 +67,7 @@ in
 %%%% Players description %%%%
 
    NbBombers = 2
-   Bombers = [player333advenced player001random]
+   Bombers = [player100advanced player001random]
    ColorBombers = [yellow red]
 
 %%%% Parameters %%%%

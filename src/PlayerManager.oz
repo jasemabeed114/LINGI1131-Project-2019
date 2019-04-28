@@ -4,7 +4,7 @@ import
    Player000bomber
    Player001random
    Player002advenced
-   Player333advenced
+   Player100advanced
    Player021IA2
    Player005Umberto
    Player105Alice
@@ -22,7 +22,7 @@ in
       of player000bomber then {Player000bomber.portPlayer ID}
       [] player001random then {Player001random.portPlayer ID}
       [] player002advenced then {Player002advenced.portPlayer ID}
-      [] player333advenced then {Player333advenced.portPlayer ID}
+      [] player100advanced then {Player100advanced.portPlayer ID}
       [] corentin then {Player021IA2.portPlayer ID}
       [] brieuc then {Player005Umberto.portPlayer ID}
       [] cyril then {Player105Alice.portPlayer ID}

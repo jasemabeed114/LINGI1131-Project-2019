@@ -8,7 +8,7 @@ export
 define   
     StartPlayer
     TreatStream
-    Name = 'Player333advenced'
+    Name = 'Player100advanced'
 
     SetMapVal
     SetMapValRemoveBonus
