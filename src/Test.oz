@@ -351,6 +351,9 @@ in
 
         DoubleBombBool
     in
+        % Just to be sure that the player has no bomb
+        {Send PlayersPort.1 add(bomb ~Input.nbBombs _)}
+
         SpawnBackBool = {TestSpawnBack}
         OneMoveBool = {TestOneMove}
         DieAndRespawnBool = {TestDieAndRespawn}
