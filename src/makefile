@@ -1,7 +1,7 @@
 # ----------------------------
-# group nb XXX
-# noma1 : Louis Navarre
-# 20181600 : Edgar Gevorgyan
+# group nb 100
+# 1235-16-00 : Louis Navarre
+# 2018-16-00 : Edgar Gevorgyan
 # ----------------------------
 
 # TODO complete the header with your group number, your noma's and full names
