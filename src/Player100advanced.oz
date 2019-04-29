@@ -161,16 +161,7 @@ in
                 {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs AllBombes MySpawn}
             else
                 ActionDo
-                TimeWait
             in
-            
-                if {Not Input.useExtention} then
-                    TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
-                else
-                    TimeWait = 500
-                end
-                {Delay TimeWait}
-
                 {CreateMoveAdvanced MyMap MyPosition.x MyPosition.y MyBonuses.bomb AllBombes ActionDo}
                 ID = MyID
                 case ActionDo of bomb(Pos) then
