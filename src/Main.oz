@@ -196,8 +196,14 @@ in
         case ThePlayersPort of nil then % All the players have played
             NewBombs
             ResultEndGame
+            TimeWait
         in
-            {Delay 500}
+            if {Not Input.useExtention} then
+                TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
+            else
+                TimeWait = 500
+            end
+            {Delay TimeWait}
             NewBombs = {ProcessBombs TheBombs}
             {Send EndGamePort getEndGame(ResultEndGame)}
             if ResultEndGame == false then % Not the end
@@ -365,7 +371,14 @@ in
         proc{Loop}
             ID
             AlivePlayers
+            TimeWait
         in
+            if {Not Input.useExtention} then
+                TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
+            else
+                TimeWait = 500
+            end
+            {Delay TimeWait}
             {Send EndGamePort getAlive(AlivePlayers)}
             {Send MyPort getState(ID _)}
             if {AmIAlive AlivePlayers ID} then % Alive player
