@@ -72,7 +72,7 @@ Les points actuels sont aussi stockés et modifiés via cet agent. Cela permet, 
 Il est important de tenir le compte du nombre de boîtes encore intactes sur la carte, puisque la partie est considérée comme terminée lorsqu'il n'y a plus aucune de celles-ci sur la carte de jeu. L'agent tient donc un compte du nombre de boxes encore sur la carte, et peut recevoir des notifications d'une explosion de boite. Avant de décrémenter le compte total de boites encore présentes, l'agent vérifie si la boite indiquée par la position donnée est encore sur la carte. Cela peut permettre d'éviter certains problèmes de désynchronisation entre deux explosions de bombes dans le mode simultané. C'est d'ailleurs cet agent qui demande à l'agent de la gestion de la carte de modifier celle-ci (\ref{gestion_map}).
 
 \section{Joueurs : \texttt{PlayerXXXname.oz}}
-Dans cette partie du projet, nous avons mis en place 2 joueurs. Un joueur simple qui agit de manière assez aléatoire et un autre joueur plus intelligent qui agit de manière statégique.
+Dans cette partie du projet, nous avons mis en place 2 joueurs. Un joueur simple qui agit de manière assez aléatoire et un autre joueur plus intelligent qui agit de manière statégique. De plus, lorsque les extentions sont activées, les joueurs peuvent rester sur place s'ils le désirent.
 \subsection{Joueur basique : \texttt{Player001random.oz}}
 Ce joueur se déplacera sur le plan de jeu de manière aléatoire et posera une bombe avec une probabilité de 0.1.
 \subsection{Joueur avancé: \texttt{Player100advanced.oz}}
