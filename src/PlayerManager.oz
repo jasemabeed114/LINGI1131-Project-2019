@@ -2,7 +2,7 @@ functor
 import
    Player000name
    Player000bomber
-   Player001random
+   Player100random
    Player100advanced
    /* 
    USED FOR INTEROP
@@ -24,7 +24,7 @@ in
    fun{PlayerGenerator Kind ID}
       case Kind
       of player000bomber then {Player000bomber.portPlayer ID}
-      [] player001random then {Player001random.portPlayer ID}
+      [] player100random then {Player100random.portPlayer ID}
       [] player100advanced then {Player100advanced.portPlayer ID}
       
       /* 
