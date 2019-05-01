@@ -71,6 +71,20 @@ Les points actuels sont aussi stockés et modifiés via cet agent. Cela permet, 
 \label{gestion_boxes}
 Il est important de tenir le compte du nombre de boîtes encore intactes sur la carte, puisque la partie est considérée comme terminée lorsqu'il n'y a plus aucune de celles-ci sur la carte de jeu. L'agent tient donc un compte du nombre de boxes encore sur la carte, et peut recevoir des notifications d'une explosion de boite. Avant de décrémenter le compte total de boites encore présentes, l'agent vérifie si la boite indiquée par la position donnée est encore sur la carte. Cela peut permettre d'éviter certains problèmes de désynchronisation entre deux explosions de bombes dans le mode simultané. C'est d'ailleurs cet agent qui demande à l'agent de la gestion de la carte de modifier celle-ci (\ref{gestion_map}).
 
+\section{Joueurs : \texttt{PlayerXXXname.oz}}
+Dans cette partie du projet, nous avons mis en place 2 joueurs. Un joueur simple qui agit de manière assez aléatoire et un autre joueur plus intelligent qui agit de manière statégique. De plus, lorsque les extentions sont activées, les joueurs peuvent rester sur place s'ils le désirent.
+\subsection{Joueur basique : \texttt{Player001random.oz}}
+Ce joueur se déplacera sur le plan de jeu de manière aléatoire et posera une bombe avec une probabilité de 0.1.
+\subsection{Joueur avancé: \texttt{Player100advanced.oz}}
+Etant donné que le gagnant est le joueur possèdant le plus de point à la fin du jeu. La stratégie  de ce joueur sera, par conséquant, d'engranger le plus de point possible. \\
+En premier lieu, il posera une bombe s'il possède au moins une bombe et qu'il soit à côté d'une case ayant une \emph{box} non cassé. En effet, la bombe cassera la \emph{box}, cela donnera une occasion au joueur de prendre un point ou un bonus.\\
+Ensuite, s'il ne peut pas poser une bombe, il fera un mouvement vers une case adjacente parmis ceux qui sont possible. Le choix de la case se fera dans l'ordre de préferantielle suivant :
+ \begin{itemize}
+	\item une case ne lui exposant à aucun risque de mort et qu'un point ou un bonus soit disponible sur celui-ci.
+	\item une case ne lui exposant à aucun risque de mort.
+	\item une case lui exposant à un risque éventuelle de mort.
+\end{itemize}
+Dans le cas où plusieurs cases de même priorité sont possibles, le joueur en choisira une de manière aléatoire sauf dans un cas particulier suivant : si tous les cases possible mènent à un risque éventuel de mort, le joueurs essayera de s'éloigner de la bombe la plus proche.
 \section{Interopérabilité}
 Nous avons effectué des tests d'interopérabilité avec 5 groupes différents. Grâce aux plateformes déployées par d'autres étudiants, nous avons pu vérifier si notre contrôleur fonctionnait avec ces autres joueurs. Pour chacun des joueurs testés qui fonctionnaient avec notre contrôleur, nous avons aussi lancé notre propre suite de tests.
 \begin{itemize}
@@ -97,6 +111,12 @@ Trois types d'extensions ont été ajoutés à notre travail:
 			\item Le joueur est déjà mort et est à nouveau notifié de sa mort: il doit \emph{bind} les identificateurs reçus à \texttt{null}
 			
 		\end{itemize}
+	Pour rendre son utilisation plus simple, nous avons ajouté des commandes dans le makefile :
+	\begin{itemize}
+		\item \texttt{test} compile les fichiers nécessaire pour les tests et lance les tests
+		\item \texttt{compileTest} compile les fichiers nécessaire pour les tests
+		\item \texttt{run\_test} lance les tests
+	\end{itemize}
 \end{itemize}
 \section{Les problèmes rencontrés}
 Nous avons rencontré deux types de problèmes majeurs lors de l'implémentation du projet. Le premier est la manière de récupérer l'état des joueurs, comme leur position ou leur nombre de points. De notre point de vue, il aurait été plus simple de pouvoir demander au joueur de donner sa position actuelle, puisqu'il la stocke de toute manière. Or, ici, nous devons la stocker dans le joueur et dans le contrôleur. Il en est de même pour les points de celui-ci \\ \\
