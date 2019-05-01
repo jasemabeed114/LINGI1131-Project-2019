@@ -16,7 +16,7 @@ in
 
     thread SpawnPositions = {LookForSpawn Input.map}
 
-    {InitPlayers 2 Input.colorsBombers Input.bombers SpawnPositions PlayersPosition PlayersPort}
+    {InitPlayers 1 Input.colorsBombers Input.bombers SpawnPositions PlayersPosition PlayersPort}
     {GlobalTest}
     end
     
@@ -281,66 +281,6 @@ in
 
             BoolShieldBefore andthen BoolAddLife andthen BoolGotHitWithShield andthen BoolShieldAfterDie andthen BoolShieldEnd
         end
-
-        /* 
-
-        fun{TestDoubleBomb}
-            ThePort
-
-            ResultGiveBomb
-            ActionBomb
-            ActionBomb2
-
-            BoolBombGiven
-            BoolAmorceBomb
-            BoolNoMoreBomb
-        in
-            ThePort = PlayersPort.2.1
-
-            % We give the player two bombs
-            {Send ThePort add(bomb 2 ResultGiveBomb)}
-            if ResultGiveBomb == 2 then % Correct
-                BoolBombGiven = true
-            else
-                BoolBombGiven = false
-            end
-
-            % We first ask the player to make a move
-            % Since the player has no were to go, he should drop a bomb near the box
-            {Send ThePort doaction(_ ActionBomb)}
-            {Browser.browse passage1}
-            {Delay 4000}
-            {Browser.browse ActionBomb}
-            case ActionBomb of bomb(Position) then
-                if Position.x == PlayersPosition.2.1.x andthen Position.y == PlayersPosition.2.1.y then
-                    BoolAmorceBomb = true
-                else
-                    BoolAmorceBomb = false
-                end
-            else
-                BoolAmorceBomb = false
-            end
-
-            % Now the player still can't move so he should drop a bomb
-            % But there is already a bomb next to him, so he shouldn't drop another bomb
-            % We ask the player to do an action and wait for 
-            % 5 seconds. If ActionBomb2 is bounded, it means that the player made a move
-            % which is impossible; or he droped a bomb, which is forbidden.
-            % So if the player can't stay at his place, the correct situation is to have
-            % the player not beeing able to find a solution, and having ActionBomb2 unbounded
-            {Send ThePort doaction(_ ActionBomb2)}
-            {Delay 500}
-            {Browser.browse jesuisla}
-            if {IsDet ActionBomb2} then 
-                BoolNoMoreBomb = false
-            else
-                BoolNoMoreBomb = true
-            end
-
-            BoolBombGiven andthen BoolAmorceBomb andthen BoolNoMoreBomb
-        end
-        */
-
         SpawnBackBool
         OneMoveBool
         DieAndRespawnBool
@@ -348,8 +288,6 @@ in
         GivePointsAndBombsBool
 
         ExtensionsAddBool
-
-        DoubleBombBool
     in
         % Just to be sure that the player has no bomb
         {Send PlayersPort.1 add(bomb ~Input.nbBombs _)}
@@ -359,8 +297,6 @@ in
         DieAndRespawnBool = {TestDieAndRespawn}
         DieBorderCaseBool = {TestDieBorderCase}
         GivePointsAndBombsBool = {TestGivePointsAndBombs}
-
-        %DoubleBombBool = {TestDoubleBomb}
         
         if Input.useExtention then % Use extensions, test the extensions
             ExtensionsAddBool = {TestGiveExtensions}
@@ -407,13 +343,6 @@ in
                 {Browser.browse 'The player does not act correctly regarding the extention addings'}
             end
         end
-        /*
-        if DoubleBombBool then
-            {Browser.browse 'PASSED: The player does not drop more than one not exploded bomb at the same place'}
-        else
-            {Browser.browse 'The player drops more than one not exploded bomb at the same place'}
-        end
-        */
     
     end
 
