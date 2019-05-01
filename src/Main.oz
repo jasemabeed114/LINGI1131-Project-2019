@@ -374,7 +374,6 @@ in
             else
                 TimeWait = 500
             end
-            {Delay TimeWait}
             {Send EndGamePort getAlive(AlivePlayers)}
             {Send MyPort getState(ID _)}
             if {AmIAlive AlivePlayers ID} then % Alive player
@@ -383,6 +382,7 @@ in
                 Value
             in
                 {Send MyPort doaction(_ Action)}
+                {Delay TimeWait}
                 case Action of move(Pos) then
                     {Send WindowPort movePlayer(ID Pos)}
                     {Send PositionPort modif(ID#Pos)}
