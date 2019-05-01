@@ -65,12 +65,8 @@ in
     {Delay 10000}
 
     NbPlayers = Input.nbBombers
-    {Browser.browse hello}
     %Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
     thread Positions = {LookForSpawn Input.map} end
-    {Browser.browse fin}
-    {Browser.browse PlayersPort}
-    {Browser.browse PlayersPosition}
     thread {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort} end
     if Input.isTurnByTurn then
         thread 
