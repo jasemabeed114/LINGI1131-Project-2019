@@ -18,7 +18,7 @@ define
    GetMapVal
    CheckBombsExploded
    CheckMyBombExploded
-   Name = 'Player001random'
+   Name = 'Player100random'
 
    MySpawn
 
