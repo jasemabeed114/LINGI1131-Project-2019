@@ -76,6 +76,18 @@ Dans cette partie du projet, nous avons mis en place 2 joueurs. Un joueur simple
 \subsection{Joueur basique : \texttt{Player001random.oz}}
 Ce joueur se déplacera sur le plan de jeu de manière aléatoire et posera une bombe avec une probabilité de 0.1.
 \subsection{Joueur avancé: \texttt{Player100advanced.oz}}
+Étant donné que le gagnant est le joueur possédant le plus de points à la fin de la partie, la stratégie de notre joueur avancé est de se concentrer sur les boîtes de points/bonus et non sur l'adversaire. Le joueur ne prête donc aucun intérêt aux joueurs adverses, mais uniquement à sa sécurité et aux points potentiels de la carte de jeu. Nous pouvons voir le comportement de notre joueur comme une suite de vérifications "d'état" pour le prochain mouvement à faire:
+\begin{itemize}
+	\item Si le joueur est positionné sur une case adjacente à un bonus/point libéré, le joueur se déplacera vers cette case pour engranger le bonus/point.
+	\item Si le joueur est positionné sur une case adjacente à une \emph{boxe}, et qu'il a encore des bombes en stock, alors celui-ci pose une bombe.
+	\item Si le joueur n'est pas en \emph{safe place} (lieu sûr), alors
+		\begin{itemize}
+			\item Si une case sûre est adjacente à la case du joueur, le joueur se déplace sur cette case.
+			\item Sinon, le joueur se déplace dans la direction opposée à la case où est située la bombe causant l'insécurité du joueur.
+		\end{itemize}
+	\item Si le joueur est en lieu sûr, mais qu'il n'y a aucun bonus/point/\emph{boxe}, alors le joueur se déplace de façon aléatoire.
+\end{itemize}
+
 Etant donné que le gagnant est le joueur possèdant le plus de point à la fin du jeu. La stratégie  de ce joueur sera, par conséquant, d'engranger le plus de point possible. \\
 En premier lieu, il posera une bombe s'il possède au moins une bombe et qu'il soit à côté d'une case ayant une \emph{box} non cassé. En effet, la bombe cassera la \emph{box}, cela donnera une occasion au joueur de prendre un point ou un bonus.\\
 Ensuite, s'il ne peut pas poser une bombe, il fera un mouvement vers une case adjacente parmis ceux qui sont possible. Le choix de la case se fera dans l'ordre de préferantielle suivant :
@@ -93,6 +105,8 @@ Nous avons effectué des tests d'interopérabilité avec 5 groupes différents. 
 	\item \texttt{Player105Alice} de Cyril Maréchal. Aucun problème rencontré lors des tests d'interopérabilité. Mais ce joueur n'a pas passé tous nos tests: le joueur ne se comporte pas correctement lorsqu'il est mort et qu'on lui indique (par erreur) à nouveau qu'il est mort.
 	\item \texttt{Player022smart} de Adrien Lauwers. Impossible de faire tourner ce joueur avec notre contrôleur. Sur la plateforme déployée, nous avons vu que nous n'étions pas les seuls à avoir un problème avec de joueur.
 	\item \texttt{Player106noob} de Matthieu Villebrun. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
+	\item \texttt{Player007Zorro} de Nizar Bousselmi. Aucun problème rencontré avec ce joueur.
+	\item \texttt{Player010IA} de Xavier Nguyen. Aucun problème rencontré avec ce joueur.
 \end{itemize}
 \section{Extensions}
 Trois types d'extensions ont été ajoutés à notre travail:
@@ -117,8 +131,12 @@ Trois types d'extensions ont été ajoutés à notre travail:
 		\item \texttt{compileTest} compile les fichiers nécessaire pour les tests
 		\item \texttt{run\_test} lance les tests
 	\end{itemize}
+	\item Autres: Spécifions que lorsque les extensions sont activées, le délais entre deux déplacements de joueurs est diminué et est constant à une valeur de 500ms. De plus, notre joueur avancé \texttt{Player100advanced} peut à ce moment-là rester sur une case sans effectuer de déplacement.
 \end{itemize}
 \section{Les problèmes rencontrés}
 Nous avons rencontré deux types de problèmes majeurs lors de l'implémentation du projet. Le premier est la manière de récupérer l'état des joueurs, comme leur position ou leur nombre de points. De notre point de vue, il aurait été plus simple de pouvoir demander au joueur de donner sa position actuelle, puisqu'il la stocke de toute manière. Or, ici, nous devons la stocker dans le joueur et dans le contrôleur. Il en est de même pour les points de celui-ci \\ \\
-Le deuxième problème majeur que nous avons rencontré est la gestion de la carte. En effet, celle-ci change au cours de la partie (explosion d'une boite, un bonus récupéré par un joueur,...) et nous avons pris du temps avant de nous rendre compte qu'il était possible de respecter nos volontés en utilisant un agent spécifique pour la carte uniquement par exemple. Nous avons encore eu quelques soucis de synchronisation entre les joueurs et le contrôleur. Par exemple, il arrivait de considérer un joueur comme mort définitivement, alors qu'il avait simplement péri à cause d'une bombe, mais avait encore des vies et n'avait pas encore eu le temps de réaparaitre.
+Le deuxième problème majeur que nous avons rencontré est la gestion de la carte. En effet, celle-ci change au cours de la partie (explosion d'une boite, un bonus récupéré par un joueur,...) et nous avons pris du temps avant de nous rendre compte qu'il était possible de respecter nos volontés en utilisant un agent spécifique pour la carte uniquement par exemple. Nous avons encore eu quelques soucis de synchronisation entre les joueurs et le contrôleur. Par exemple, il arrivait de considérer un joueur comme mort définitivement, alors qu'il avait simplement péri à cause d'une bombe, mais avait encore des vies et n'avait pas encore eu le temps de réapparaitre.
+
+\section{Conclusion}
+Nous estimons que notre projet respecte toutes les spécifications demandées. De plus, nous avons ajouté quelques extensions à notre travail: deux bonus supplémentaires, une \emph{GUI} modifiée, et une petite série de tests. 
 \end{document}
