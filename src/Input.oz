@@ -33,7 +33,7 @@ in
    
    IsTurnByTurn = false
    UseExtention = false %set to false for interop
-   PrintOK = true
+   PrintOK = false
 
 
 %%%% Description of the map %%%%
@@ -67,7 +67,7 @@ in
 %%%% Players description %%%%
 
    NbBombers = 2
-   Bombers = [player100advanced xavier]
+   Bombers = [zorro player100advanced]
    ColorBombers = [yellow red]
 
 %%%% Parameters %%%%

@@ -577,6 +577,7 @@ in
                 in
                     {ForceEndGame}
                     {Send PointPort endGame(Winner)}
+                    {Wait Winner}
                     {Send WindowPort displayWinner(Winner)}
                 end
             else
@@ -607,6 +608,7 @@ in
                             SpawnPosition
                         in
                             {Send PortH spawn(_ SpawnPosition)}
+                            {Wait SpawnPosition}
                             {Send PositionPort modif(ID#SpawnPosition)}
                             {Send WindowPort movePlayer(ID SpawnPosition)}
                             {Send WindowPort lifeUpdate(ID NewLife)}
@@ -654,6 +656,7 @@ in
                         in
                             {ForceEndGame}
                             {Send PointPort endGame(Winner)}
+                            {Wait Winner}
                             {Send WindowPort displayWinner(Winner)}
                         end
                     elseif Check == bonus then
@@ -675,6 +678,7 @@ in
                         in
                             {ForceEndGame}
                             {Send PointPort endGame(Winner)}
+                            {Wait Winner}
                             {Send WindowPort displayWinner(Winner)}
                         end
                     else
