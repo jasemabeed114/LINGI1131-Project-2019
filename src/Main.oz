@@ -201,6 +201,7 @@ in
             end
             {Delay TimeWait}
             NewBombs = {ProcessBombs TheBombs}
+            {Wait NewBombs}
             {Send EndGamePort getEndGame(ResultEndGame)}
             if ResultEndGame == false then % Not the end
                 {TurnByTurn PlayersPort NewBombs}

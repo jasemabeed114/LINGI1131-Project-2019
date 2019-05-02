@@ -25,13 +25,13 @@ define
    ThinkMin ThinkMax
    TimingBomb TimingBombMin TimingBombMax Fire
 
-   Map1 Map2 MapTests
+   Map1 Map2 Map3 MapTests
 in 
 
 
 %%%% Style of game %%%%
    
-   IsTurnByTurn = false
+   IsTurnByTurn = true
    UseExtention = false %set to false for interop
    PrintOK = false
 
@@ -63,6 +63,14 @@ in
 	  [1 0 1 0 0 0 0 0 0 1 1 0 1]
 	  [1 4 0 1 0 0 0 0 0 1 0 4 1]
 	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
+
+     Map3 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
+	  [1 4 0 0 0 0 0 0 0 0 0 4 1]
+	  [1 0 0 0 0 0 0 0 0 0 1 0 1]
+	  [1 0 0 0 0 0 0 0 0 0 0 0 1]
+	  [1 0 0 0 0 0 0 0 2 0 0 0 1]
+	  [1 4 0 2 0 0 0 0 0 0 0 4 1]
+	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
    
    MapTests = [[1 1 1 1 1]
                [1 4 1 1 1]
@@ -72,7 +80,7 @@ in
 %%%% Players description %%%%
 
    NbBombers = 2
-   Bombers = [player100advanced player100random]
+   Bombers = [player100advanced player100jonSnow]
    ColorBombers = [yellow red]
 
 %%%% Parameters %%%%
