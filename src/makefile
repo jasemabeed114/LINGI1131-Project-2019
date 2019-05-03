@@ -22,8 +22,8 @@ compile: PlayerManager.oz compilePlayers GUI.oz Main.oz
 %.ozf: %.oz
 		${COMPILE} $<
 
-compilePlayers: Player001random.oz Player100advanced.oz
-		${COMPILE} Player001random.oz Player100advanced.oz
+compilePlayers: Player100random.oz Player100advanced.oz
+		${COMPILE} Player100random.oz Player100advanced.oz
 
 run: Main.ozf
 		${EXECUTE} Main.ozf
@@ -35,7 +35,7 @@ run_test: Test.ozf
 		${EXECUTE} Test.ozf
 
 clean:
-		rm -rf Player001random.ozf
+		rm -rf Player100random.ozf
 		rm -rf Player100advanced.ozf
 		rm -rf Input.ozf
 		rm -rf PlayerManager.ozf
