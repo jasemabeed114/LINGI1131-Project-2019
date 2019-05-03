@@ -93,16 +93,13 @@ Ce joueur a un comportement fort similaire au joueur précédent. Le seul change
 \section{Interopérabilité}
 Nous avons effectué des tests d'interopérabilité avec plusieurs groupes différents. Grâce aux plateformes déployées par d'autres étudiants, nous avons pu vérifier si notre contrôleur fonctionnait avec ces autres joueurs. Pour chacun des joueurs testés qui fonctionnaient avec notre contrôleur, nous avons aussi lancé notre propre suite de tests.
 \begin{itemize}
-	\item \texttt{Player021IA2} de Corentin de Mêeus. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
-	\item \texttt{Player005Umberto} de Brieuc de Voghel. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
-	\item \texttt{Player105Alice} de Cyril Maréchal. Aucun problème rencontré lors des tests d'interopérabilité. Mais ce joueur n'a pas passé tous nos tests: le joueur ne se comporte pas correctement lorsqu'il est mort et qu'on lui indique (par erreur) à nouveau qu'il est mort.
-	\item \texttt{Player022smart} de Adrien Lauwers. Impossible de faire tourner ce joueur avec notre contrôleur. Sur la plateforme déployée, nous avons vu que nous n'étions pas les seuls à avoir un problème avec de joueur.
-	\item \texttt{Player106noob} de Matthieu Villebrun. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
-	\item \texttt{Player007Zorro} de Nizar Bousselmi. Aucun problème rencontré avec ce joueur. Celui-ci ne passait pas tous nos tests personnels.
-	\item \texttt{Player010IA} de Xavier Nguyen. Aucun problème rencontré avec ce joueur. Celui-ci ne passait pas tous nos tests personnels.
-	\item \texttt{Player022Immortal} de Nicolas Chauvaux. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
+	\item Nous n'avons eu aucun problème avec les joueurs suivants. Ils ont également passé tous nos tests: \texttt{Player021IA2} (groupe 21), \texttt{Player005Umberto} (groupe 05), \texttt{Player106noob} (groupe 106), \texttt{Player007Zorro} (groupe 07), \texttt{Player022Immortal} (groupe 022), \texttt{Player001Turing} (groupe 01), \texttt{Player001Tao} (groupe 01), \texttt{Player055Clever} (groupe 55).
+	\item Aucun problème non plus pour les joueurs suivants, mais ceux-ci n'ont pas passé tous nos tests (en tout cas au moment où nous avons testé ces joueurs): \texttt{Player105Alice} (groupe 105), \texttt{Player007Zorro} (groupe 07), \texttt{Player010IA} (groupe 10).
+	\item Impossible de faire fonctionner le joueur suivant (en tout cas au moement où nous avons testé ce joueur): \texttt{Player022smart} (groupe 22).
 \end{itemize}
-Voici une liste de numéro de groupes de personnes qui nous ont donné un \emph{feedback} sur nos joueurs intelligents. Pour chacun d'entre d'entre eux, le retour était positif: 01, 07, 10, 21, 22, 55, 105.
+Les groupes suivants ont testé nos 2 joueurs intelligents, et nous ont donné un \emph{feedback} positif sur ceux-ci: 01, 07, 10, 21, 22, 55, 105. \\ \\
+Le groupe suivant nous a indiqué que nos joueurs intelligents retournaient un \emph{floating point exception}: 188 (Magali Legast \& Laritza Cabrera Alba). Nous avons pu corriger notre erreur grâce à eux. 
+Voici une liste de numéro de groupes de personnes qui nous ont donné un \emph{feedback} sur nos joueurs intelligents. Pour chacun d'entre d'entre eux, le retour était positif: 01, 07, 10, 21, 22, 55, 105. Le feedback du groupe 118 nous a permis de trouver une erreur \emph{floating point} dans un cas particulier de nos joueurs intelligents.
 \section{Extensions}
 Trois types d'extensions ont été ajoutés à notre travail:
 \begin{itemize}

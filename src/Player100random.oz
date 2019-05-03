@@ -1,7 +1,7 @@
 functor
 import
    Input
-   Browser
+   System
    Projet2019util
    OS
 export
@@ -174,9 +174,7 @@ in
                 end
             end
         else
-            {Delay 3000}
-            {Browser.browse elseStatement}
-            {Delay 3000}
+            {System.show 'Unknown received message in the player'}
         end
     end
 

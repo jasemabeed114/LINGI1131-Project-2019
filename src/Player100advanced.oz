@@ -602,7 +602,7 @@ in
                     else
                         Rand2
                     in
-                        Rand2 = ({OS.rand} mod Tmp) + 1
+                        Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
                         Action = move({Nth PossibleMove Rand2})
                     end
                     end

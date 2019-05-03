@@ -3,6 +3,7 @@ import
     GUI
     Input
     PlayerManager
+    System
     Browser
     OS
 export
@@ -72,7 +73,7 @@ in
             NbPlayers = Input.nbBombers
             Positions = {LookForSpawn Input.map}
             if {Length Positions} < NbPlayers then % More players than positions
-                {Browser.browse 'Error, there are more players than spawn positions'}
+                {System.show 'Eror, the number of players is higher than the number of spawns'}
             else
                 {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort}
                 if Input.isTurnByTurn then
@@ -568,7 +569,7 @@ in
                 PositionsGetter = Positions % We bind it to the positions
                 {PositionsHandler T Positions}
             else
-                {Browser.browse errorPositionsHandler}
+                {System.show 'Unknown received message in PositionHandler'}
             end
         end
     end
@@ -637,7 +638,7 @@ in
                     {Send WindowPort displayWinner(Winner)}
                 end
             else
-                {Browser.browse errorBombHandler}
+                {System.show 'Unknown received message in BombHandler'}
             end
         end
     end
