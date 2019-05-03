@@ -15,6 +15,8 @@ import
    Player010IA
    Player007Zorro
    Player022Immortal
+   Player055Clever
+   Player001Turing
    */
    
    %% Add here the name of the functor of a player
@@ -30,7 +32,6 @@ in
       [] player100random then {Player100random.portPlayer ID}
       [] player100advanced then {Player100advanced.portPlayer ID}
       [] player100jonSnow then {Player100JonSnow.portPlayer ID}
-      
       /* 
       USED FOR INTEROP
       [] corentin then {Player021IA2.portPlayer ID}
@@ -40,6 +41,8 @@ in
       [] xavier then {Player010IA.portPlayer ID}
       [] zorro then {Player007Zorro.portPlayer ID}
       [] player022Immortal then {Player022Immortal.portPlayer ID}
+      [] lily then {Player055Clever.portPlayer ID}
+      [] gilles then {Player001Turing.portPlayer ID}
       */
       %% Add here the pattern to recognize the name used in the 
       %% input file and launch the portPlayer function from the functor
