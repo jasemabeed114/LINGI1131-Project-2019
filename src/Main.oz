@@ -4,7 +4,6 @@ import
     Input
     PlayerManager
     System
-    Browser
     OS
 export
     startGame:StartGame
