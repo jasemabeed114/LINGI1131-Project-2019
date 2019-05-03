@@ -4,6 +4,7 @@ import
    Player000bomber
    Player100random
    Player100advanced
+   Player100JonSnow
    /* 
    USED FOR INTEROP
    Player021IA2
@@ -26,6 +27,7 @@ in
       of player000bomber then {Player000bomber.portPlayer ID}
       [] player100random then {Player100random.portPlayer ID}
       [] player100advanced then {Player100advanced.portPlayer ID}
+      [] player100jonSnow then {Player100JonSnow.portPlayer ID}
       
       /* 
       USED FOR INTEROP

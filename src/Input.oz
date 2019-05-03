@@ -80,6 +80,7 @@ in
 %%%% Players description %%%%
 
    NbBombers = 2
+   
    Bombers = [player100random player100random]
    ColorBombers = [yellow red]
 
