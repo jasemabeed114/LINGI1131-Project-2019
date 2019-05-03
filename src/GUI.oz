@@ -19,6 +19,7 @@ define
    UpdateValue
 
    BuildWindow
+   BuildWindow_Winner
    
    Squares
    Items
@@ -91,6 +92,15 @@ in
       handle(grid:Grid items:GridItems life:GridLife score:GridScore)
    end
 
+   proc{BuildWindow_Winner Player}
+       Toolbar Window Description
+   in
+      Toolbar=lr(glue:we tbbutton(text:"Quit" glue:w action:toplevel#close))
+      Description=td(Toolbar
+                     label(text:'Winner :\n'#Player.name relief:raised bg:Player.color ipadx:200 ipady:200 font:{QTk.newFont font(weight:bold size:30)}))
+      Window={QTk.build Description}
+      {Window show}
+   end
    
 %%%%% Squares of path and wall
    Path={OS.getCWD}
@@ -343,6 +353,7 @@ in
 	    {TreatStream T Grid Players}
          [] displayWinner(ID) then
 	    {Browser.browse 'the winner is '#ID}
+       {BuildWindow_Winner ID}
          else
 	    {Browser.browse 'unsupported message'#H}
 	    {TreatStream T Grid Players}
