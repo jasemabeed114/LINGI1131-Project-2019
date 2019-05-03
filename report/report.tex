@@ -87,6 +87,8 @@ Ce joueur se déplacera sur le plan de jeu de manière aléatoire et posera, si 
 		\end{itemize}
 	\item Si le joueur est en lieu sûr, mais qu'il n'y a aucun bonus/point/\emph{boxe}, alors le joueur se déplace de façon aléatoire.
 \end{itemize}
+\subsection{Jon Snow: \texttt{Player100JonSnow}}
+Ce joueur a un comportement fort similaire au joueur précédent. Le seul changement majeur est que, lorsque Jon peut se déplacer sur plusieurs cases sûres, il va de préférence aller vers la case le rapprochant du/de la bonus/point/boite le/la plus proche de lui. Pour faire cela, nous effectuons un \texttt{BFS} où les souces sont toutes les cases sûres où Jon peut se déplacer. Ensuite, nous cherchons le/la bonus/point/boite le/la plus proche, et le joueur se déplace vers cette direction.
 \section{Interopérabilité}
 Nous avons effectué des tests d'interopérabilité avec 5 groupes différents. Grâce aux plateformes déployées par d'autres étudiants, nous avons pu vérifier si notre contrôleur fonctionnait avec ces autres joueurs. Pour chacun des joueurs testés qui fonctionnaient avec notre contrôleur, nous avons aussi lancé notre propre suite de tests.
 \begin{itemize}
