@@ -19,7 +19,7 @@
 \section{Introduction}
 Ce rapport concerne le projet pour le cours LINGI1131 - Concepts de langages de programmation (\emph{Computer languages concepts}). \\ \\
 Dans un premier temps, en ce qui concerne la partie obligatoire, nous avons effectué tout ce qui était demandé. Des explications sur la structure de notre implémentation de notre contrôleur et de nos joueurs concernent la première partie de notre rapport. Dans un second temps, nous avons ajouté quelques extensions à notre travail. Tout d'abord, nous avons ajouté les deux bonus supplémentaires conseillés lorsqu'un joueur en ramasse un sur le terrain de jeu: le bouclier et la vie supplémentaire. Ensuite, nous avons modifié à notre guise le \texttt{GUI} afin de le rendre plus ludique et plus approprié à un jeu lugubre et mortel tel que le \emph{Bomberman}. Enfin, nous avons aussi créé notre propre suite de tests, qui teste quelques cas triviaux et particuliers du comportement attendu des joueurs.
-\paragraph{Remarque.}Précisons dès maintenant que le \emph{thinking delay} est inclus dans notre contrôleur principal et pas dans chacun de nos joueurs. Lorsque nous avons appris la réelle signification de cette règle, nous avions déjà effectué tous nos tests d'interopérabilité.
+\paragraph{Remarques.}Précisons dès maintenant que le \emph{thinking delay} est inclus dans notre contrôleur principal et pas dans chacun de nos joueurs. Lorsque nous avons appris la réelle signification de cette règle, nous avions déjà effectué tous nos tests d'interopérabilité. De plus, \textbf{pour démarrer le jeu}, il faut appuyer sur le boutton \emph{Start Game} en haut à gauche de la fenêtre de jeu.
 
 \section{Contrôleur \texttt{Main}}
 Notre contrôleur est séparé en deux parties: la gestion des évènements et la gestion des joueurs. Faire de la sorte nous permet d'éviter de dupliquer du code pour le mode de jeu tour par tour, et le mode simultané. Ainsi, les seules différences notables entre ces deux modes de jeu se situent au niveau de la gestion des joueurs - la gestion des évènements est donc identique peu importe le mode de jeu. Toutes les fonctions/procédures référencées dans cette section sont relatives au fichier \texttt{Main.oz}.
@@ -106,7 +106,7 @@ Nous avons effectué des tests d'interopérabilité avec plusieurs groupes diff�
 Trois types d'extensions ont été ajoutés à notre travail:
 \begin{itemize}
 	\item Bonus: Comme dit dans l'introduction, nous avons ajouté les boucliers et les vies additionnelles comme gain des boites "bonus" de la carte.
-	\item GUI: nous avons modifié à notre guise le \emph{GUI}. Chaque joueur a une petite image; des icônes pour les bombes, le feu, les bonus et points ont été ajoutées; le terrain de jeu a aussi été changé.
+	\item GUI: nous avons modifié à notre guise le \emph{GUI}. Chaque joueur a une petite image; des icônes pour les bombes, le feu, les bonus et points ont été ajoutées; le terrain de jeu a aussi été changé. Nous avons aussi ajouté un boutton \emph{Start Game} qui démarre le jeu; celui-ci ne commence pas si personne n'appuie sur le bouton. 
 	\item Tests: nous avons créé une suite de tests (\texttt{Test.oz}). Cette série de tests vérifie d'abord quelques opérations triviales:
 		\begin{itemize}
 			\item Faire un déplacement dans une zone autorisée
