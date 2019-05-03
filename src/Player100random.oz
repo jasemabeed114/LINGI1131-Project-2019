@@ -54,7 +54,7 @@ in
                 Pos = null
                 {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs MySpawn}
             else % Off the board
-                if MyLives > 0 then % Still have lives
+                if MyLives > 0 andthen MyState == off then % Still have lives
                     ID = MyID
                     Pos = MySpawn
                     {TreatStream T MyID on MySpawn MyLives MyPoints MyBonuses MyMap MyBombs MySpawn}
@@ -122,11 +122,11 @@ in
                 end
             end
         [] doaction(ID Action)|T then % Ask the player for the action
-            if MyState == off then 
+            if MyState == off orelse MyLives == 0 then 
                 %no delay here because the player is off
                 ID = null
                 Action = null
-                {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs MySpawn}
+                {TreatStream T MyID off MyPosition MyLives MyPoints MyBonuses MyMap MyBombs MySpawn}
             else
                 ActionDo
             in
@@ -155,7 +155,7 @@ in
                 end
             end
         [] gotHit(ID Result)|T then
-            if MyLives =< 0 orelse MyState == off then % Was out
+            if MyLives == 0 orelse MyState == off then % Was out
                 ID = null
                 Result = null
                 {TreatStream T MyID MyState MyPosition MyLives MyPoints MyBonuses MyMap MyBombs MySpawn}
@@ -170,7 +170,7 @@ in
                 else % No shield
                     ID = MyID
                     Result = death(MyLives-1)
-                    {TreatStream T MyID off MyPosition MyLives-1 MyPoints MyBonuses MyMap MyBombs MySpawn}
+                    {TreatStream T MyID off MyPosition (MyLives-1) MyPoints MyBonuses MyMap MyBombs MySpawn}
                 end
             end
         else

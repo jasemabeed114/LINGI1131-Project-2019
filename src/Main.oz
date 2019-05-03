@@ -418,6 +418,7 @@ in
             ID
             AlivePlayers
             TimeWait
+            State
         in
             if {Not Input.useExtention} then
                 TimeWait = ({OS.rand} mod (Input.thinkMax - Input.thinkMin)) + Input.thinkMin
@@ -425,14 +426,14 @@ in
                 TimeWait = 500
             end
             {Send EndGamePort getAlive(AlivePlayers)}
-            {Send MyPort getState(ID _)}
-            if {AmIAlive AlivePlayers ID} then % Alive player
+            {Send MyPort getState(ID State)}
+            if {AmIAlive AlivePlayers ID} andthen State == on then % Alive player
                 Action
                 TheMap
                 Value
             in
-                {Send MyPort doaction(_ Action)}
                 {Delay TimeWait}
+                {Send MyPort doaction(_ Action)}
                 case Action of move(Pos) then
                     {Send WindowPort movePlayer(ID Pos)}
                     {Send PositionPort modif(ID#Pos)}
