@@ -49,11 +49,11 @@ in
    %Map = MapTests
 
    Map1 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
-	  [1 4 0 3 2 2 2 2 2 3 0 4 1]
-	  [1 0 1 3 1 2 1 2 1 2 1 0 1]
+	  [1 4 0 3 2 2 2 2 2 3 1 4 1]
+	  [1 1 1 3 1 2 1 2 1 2 1 0 1]
 	  [1 3 2 2 3 2 2 2 2 3 2 3 1]
-	  [1 0 1 2 1 2 1 3 1 2 1 0 1]
-	  [1 4 0 2 2 2 2 2 2 2 0 4 1]
+	  [1 1 1 2 1 2 1 3 1 2 1 0 1]
+	  [1 4 0 2 2 2 2 2 2 2 1 4 1]
 	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
 
    Map2 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
@@ -87,10 +87,9 @@ in
 
 %%%% Players description %%%%
 
-   NbBombers = 4
-   Bombers = [player100advanced player100advanced player100advanced player100advanced]
-   %Bombers = [player100advanced player100jonSnow player100random]
-   ColorBombers = [yellow red green blue]
+   NbBombers = 3
+   Bombers = [player100advanced player100jonSnow player100random]
+   ColorBombers = [yellow red green]
 
 %%%% Parameters %%%%
 
@@ -98,7 +97,7 @@ in
    NbBombs = 1
  
    ThinkMin = 500  % in millisecond
-   ThinkMax = 2000 % in millisecond
+   ThinkMax = 800 % in millisecond
    
    Fire = 2
    TimingBomb = 3 
