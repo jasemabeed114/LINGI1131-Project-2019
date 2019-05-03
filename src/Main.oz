@@ -199,11 +199,11 @@ in
             else
                 TimeWait = 500
             end
-            {Delay TimeWait}
             NewBombs = {ProcessBombs TheBombs}
             {Wait NewBombs}
             {Send EndGamePort getEndGame(ResultEndGame)}
             if ResultEndGame == false then % Not the end
+                {Delay TimeWait}
                 {TurnByTurn PlayersPort NewBombs}
             else
                 skip % End of the game, we stop
