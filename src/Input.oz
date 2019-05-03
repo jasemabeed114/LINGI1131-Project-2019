@@ -25,7 +25,7 @@ define
    ThinkMin ThinkMax
    TimingBomb TimingBombMin TimingBombMax Fire
 
-   Map1 Map2 Map3 MapTests
+   Map1 Map2 Map3 MapTests MapOZ
 in 
 
 
@@ -56,7 +56,7 @@ in
 	  [1 4 0 2 2 2 2 2 2 2 0 4 1]
 	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
 
-     Map2 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
+   Map2 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
 	  [1 4 0 1 0 0 0 0 0 1 0 4 1]
 	  [1 0 1 0 0 0 0 0 0 1 2 2 1]
 	  [1 0 1 0 0 0 0 0 0 1 1 3 1]
@@ -64,7 +64,7 @@ in
 	  [1 4 0 1 0 0 0 0 0 1 0 4 1]
 	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
 
-     Map3 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
+   Map3 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
 	  [1 4 0 0 0 0 0 0 0 0 0 4 1]
 	  [1 0 0 0 0 0 0 0 0 0 1 0 1]
 	  [1 0 0 0 0 0 0 0 0 0 0 0 1]
@@ -77,11 +77,20 @@ in
                [1 0 1 1 1]
                [1 1 1 1 1]]
 
+   MapOZ = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
+	  [1 4 0 2 3 0 1 3 2 3 2 4 1]
+	  [1 0 2 0 0 2 0 0 0 0 2 0 1]
+	  [1 0 2 0 0 3 1 0 0 2 0 0 1]
+	  [1 0 3 0 0 2 0 0 3 0 0 0 1]
+	  [1 4 0 2 3 0 1 2 2 3 2 4 1]
+	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
+
 %%%% Players description %%%%
 
-   NbBombers = 2
-   Bombers = [player100advanced player100jonSnow]
-   ColorBombers = [yellow red]
+   NbBombers = 3
+   
+   Bombers = [player100jonSnow player100advanced player100random]
+   ColorBombers = [yellow red green]
 
 %%%% Parameters %%%%
 
