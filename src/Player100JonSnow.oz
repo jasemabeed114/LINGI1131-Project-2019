@@ -625,8 +625,12 @@ in
                     else
                         Rand2
                     in
-                        Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
-                        Action = move({Nth PossibleMove Rand2})
+                        if {Length PossibleMove} == 0 then
+                            {System.show 'Impossible to make a move! ERROR'}
+                        else
+                            Rand2 = ({OS.rand} mod {Length PossibleMove}) + 1
+                            Action = move({Nth PossibleMove Rand2})
+                        end
                     end
                     end
                 end
