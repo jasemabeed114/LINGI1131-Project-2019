@@ -5,8 +5,11 @@ import
     PlayerManager
     Browser
     OS
+export
+    startGame:StartGame
 define
     WindowPort
+    StartGame
 
     InitPlayers
     InitPlayersSpawnInformation
@@ -62,47 +65,49 @@ in
     %% Implement your controller here
     WindowPort = {GUI.portWindow} % Create the window port
     {Send WindowPort buildWindow} % Init the window
-    {Delay 10000}
+    %{Delay 10000}
 
-    NbPlayers = Input.nbBombers
-    %Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
-    thread Positions = {LookForSpawn Input.map} end
-    thread {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort} end
-    if Input.isTurnByTurn then
-        thread 
-            IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
-            BombPort = {NewPort BombStream}
-            MapPort = {NewPort MapStream}
-            PositionPort = {NewPort PositionStream}
-            EndGamePort = {NewPort EndGameStream}
-            BoxPort = {NewPort BoxStream}
-            PointPort = {NewPort PointStream}
+    proc{StartGame}
+        NbPlayers = Input.nbBombers
+        %Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
+        thread Positions = {LookForSpawn Input.map} end
+        thread {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort} end
+        if Input.isTurnByTurn then
+            thread 
+                IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
+                BombPort = {NewPort BombStream}
+                MapPort = {NewPort MapStream}
+                PositionPort = {NewPort PositionStream}
+                EndGamePort = {NewPort EndGameStream}
+                BoxPort = {NewPort BoxStream}
+                PointPort = {NewPort PointStream}
 
-            thread {BombHandler BombStream} end
-            thread {MapHandler MapStream Map} end
-            thread {PositionsHandler PositionStream PlayersPosition} end
-            thread {CheckEndGameAdvanced EndGameStream IDs nil} end
-            thread {BoxHandler BoxStream} end
-            thread {PointHandler PointStream} end
-            {TurnByTurn PlayersPort nil}
-        end
-    else
-        thread
-            IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
-            BombPort = {NewPort BombStream}
-            MapPort = {NewPort MapStream}
-            PositionPort = {NewPort PositionStream}
-            EndGamePort = {NewPort EndGameStream}
-            BoxPort = {NewPort BoxStream}
-            PointPort = {NewPort PointStream}
+                thread {BombHandler BombStream} end
+                thread {MapHandler MapStream Map} end
+                thread {PositionsHandler PositionStream PlayersPosition} end
+                thread {CheckEndGameAdvanced EndGameStream IDs nil} end
+                thread {BoxHandler BoxStream} end
+                thread {PointHandler PointStream} end
+                {TurnByTurn PlayersPort nil}
+            end
+        else
+            thread
+                IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
+                BombPort = {NewPort BombStream}
+                MapPort = {NewPort MapStream}
+                PositionPort = {NewPort PositionStream}
+                EndGamePort = {NewPort EndGameStream}
+                BoxPort = {NewPort BoxStream}
+                PointPort = {NewPort PointStream}
 
-            thread {BombHandler BombStream} end
-            thread {MapHandler MapStream Map} end
-            thread {PositionsHandler PositionStream PlayersPosition} end
-            thread {CheckEndGameAdvanced EndGameStream IDs nil} end
-            thread {BoxHandler BoxStream} end
-            thread {PointHandler PointStream} end
-            {SimultaneousInitLoop PlayersPort}
+                thread {BombHandler BombStream} end
+                thread {MapHandler MapStream Map} end
+                thread {PositionsHandler PositionStream PlayersPosition} end
+                thread {CheckEndGameAdvanced EndGameStream IDs nil} end
+                thread {BoxHandler BoxStream} end
+                thread {PointHandler PointStream} end
+                {SimultaneousInitLoop PlayersPort}
+            end
         end
     end
     fun{LookForSpawn Map}

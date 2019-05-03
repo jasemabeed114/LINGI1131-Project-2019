@@ -9,8 +9,8 @@
 \newcolumntype{s}{>{\columncolor{mygray}} l}
 
 \title{LINGI1131 - Rapport de projet}
-\author{Louis Navarre}
-\date{March 2019}
+\author{Louis \textsc{Navarre} 1235-16-00 \and Edgar \textsc{Gevorgyan} 2018-16-00}
+\date{Avril 2019}
 
 \begin{document}
 
@@ -18,7 +18,8 @@
 
 \section{Introduction}
 Ce rapport concerne le projet pour le cours LINGI1131 - Concepts de langages de programmation (\emph{Computer languages concepts}). \\ \\
-Dans un premier temps, en ce qui concerne la partie obligatoire, nous avons effectué tout ce qui était demandé. Des explications sur la structure de notre implémentation de notre contrôleur et de nos joueurs concerne la première partie de notre rapport. Dans un second temps, nous avons ajouté quelques extensions à notre travail. Tout d'abord, nous avons ajouté les deux bonus supplémentaires conseillés lorsqu'un joueur en ramasse un sur le terrain de jeu: le bouclier et la vie supplémentaire. Ensuite, nous avons modifié à notre guise le \texttt{GUI} afin de le rendre plus ludique et plus approprié à un jeu lugubre et mortel tel que le \emph{Bomberman}. Enfin, nous avons aussi créé notre propre suite de tests, qui teste quelques cas triviaux et particuliers du comportement attendu des joueurs.
+Dans un premier temps, en ce qui concerne la partie obligatoire, nous avons effectué tout ce qui était demandé. Des explications sur la structure de notre implémentation de notre contrôleur et de nos joueurs concernent la première partie de notre rapport. Dans un second temps, nous avons ajouté quelques extensions à notre travail. Tout d'abord, nous avons ajouté les deux bonus supplémentaires conseillés lorsqu'un joueur en ramasse un sur le terrain de jeu: le bouclier et la vie supplémentaire. Ensuite, nous avons modifié à notre guise le \texttt{GUI} afin de le rendre plus ludique et plus approprié à un jeu lugubre et mortel tel que le \emph{Bomberman}. Enfin, nous avons aussi créé notre propre suite de tests, qui teste quelques cas triviaux et particuliers du comportement attendu des joueurs.
+\paragraph{Remarques.}Précisons dès maintenant que le \emph{thinking delay} est inclus dans notre contrôleur principal et pas dans chacun de nos joueurs. Lorsque nous avons appris la réelle signification de cette règle, nous avions déjà effectué tous nos tests d'interopérabilité. De plus, \textbf{pour démarrer le jeu}, il faut appuyer sur le boutton \emph{Start Game} en haut à gauche de la fenêtre de jeu.
 
 \section{Contrôleur \texttt{Main}}
 Notre contrôleur est séparé en deux parties: la gestion des évènements et la gestion des joueurs. Faire de la sorte nous permet d'éviter de dupliquer du code pour le mode de jeu tour par tour, et le mode simultané. Ainsi, les seules différences notables entre ces deux modes de jeu se situent au niveau de la gestion des joueurs - la gestion des évènements est donc identique peu importe le mode de jeu. Toutes les fonctions/procédures référencées dans cette section sont relatives au fichier \texttt{Main.oz}.
@@ -29,24 +30,24 @@ Le mode tour par tour est totalement géré par la procédure \texttt{TurnByTurn
 	\item \texttt{ThePlayersPort}: la liste de joueurs encore à traiter dans l'itération.
 	\item \texttt{TheBombs}: les bombes posées qui n'ont pas encore explosé.
 \end{itemize}
- Cette procédure "itère" (en effectuant des appels récursifs) sur la liste des ports des joueurs présents dans la partie (même les joueurs décédés). Lorsque l'itération est terminée (i.e. le reste de la liste à traiter est \texttt{nil}), la procédure vérifie l'état des bombes en attente d'explosion, et traite les bombes devant exploser à ce tour, comme expliqué dans le paragraphe correspondant ci-dessous. Ensuite, la procédure effectue un appel récursif effectue si la fin de partie n'est pas détectée; et recommençant l'itération depuis le début de la liste de ports de joueurs. Les deux paragraphes ci-dessous détaillent le fonctionnement de la procédure en fonction de l'état de l'itération.
+ Cette procédure "itère" (en effectuant des appels récursifs) sur la liste des ports des joueurs présents dans la partie (même les joueurs décédés). Lorsque l'itération est terminée (i.e. le reste de la liste à traiter est \texttt{nil}), la procédure vérifie l'état des bombes en attente d'explosion, et traite les bombes devant exploser à ce tour, comme expliqué dans le paragraphe correspondant ci-dessous. Ensuite, la procédure effectue un appel récursif si la fin de partie n'est pas détectée; et recommence l'itération depuis le début de la liste de ports de joueurs. Les deux paragraphes ci-dessous détaillent le fonctionnement de la procédure en fonction de l'état de l'itération.
 
-\paragraph{Pour un joueur.}Si le joueur est toujours en vie (\ref{gestion_morts}), alors nous demandons au joueur d'effectuer sa prochaine action. S'il s'agit d'un déplacement (\texttt{move}), alors nous vérifions regardons si le joueur vient de récupérer un point/bonus. Nous traitons le point/bonus, et mettons à jour la carte (\emph{map}) (\ref{gestion_map}). S'il s'agit d'une bombe, alors nous ajoutons la position de la bombe plantée, l'identifiant (\texttt{ID}) du joueur l'ayant posée, ainsi que le nombre de tours avant explosions (\texttt{Input.timingBomb}).
+\paragraph{Pour un joueur.}Si le joueur est toujours en vie (\ref{gestion_morts}), alors nous demandons au joueur d'effectuer sa prochaine action. S'il s'agit d'un déplacement (\texttt{move}), alors nous vérifions si le joueur vient de récupérer un point/bonus. Nous traitons le point/bonus, et mettons à jour la carte (\emph{map}) (\ref{gestion_map}). S'il s'agit d'une bombe, alors nous ajoutons la position de la bombe plantée, l'identifiant (\texttt{ID}) du joueur l'ayant posée, ainsi que le nombre de tours avant explosions (\texttt{Input.timingBomb}).
 
 \paragraph{En fin de tour.}Lorsque le tour est fini (i.e. tous les joueurs ont effectué leur action), la procédure vérifie l'état des bombes: nous décrémentons les \emph{timers} de chacune des bombes posées, et nous procédons à l'explosion des bombes où ce \emph{timer} est nul (\ref{gestion_bombes}).
 
 \subsubsection{Mode simultané}
 \label{simult}
 Le mode simultané est initialisé par la procédure \texttt{SimultaneousInitLoop}. Le seul argument de cette procédure est la liste des ports des différents joueurs. Pour chacun de ceux-ci, la fonction crée un \emph{thread} qui exécute la procédure \texttt{APlayer}, prenant comme seul argument le port du joueur qu'il contrôle. Une fois cette procédure lancée, le principe est presque identique que pour l'action d'un joueur dans le mode tour par tour. La première différence est que, comme le mode de jeu l'indique, un joueur est indépendant des autres; ainsi, la procédure se rappelle elle-même après un certain délais pour demander au joueur d'effectuer sa prochaine action, etc... \\ \\
-La différence majeure se situe au niveau la gestion de l'amorçage de bombes. Ici, lorsque la procédure reçoit comme action du joueur de poser une bombe, un \emph{thread} indépendant est créé. Le but de ce \emph{thread} est simple: afficher la bombe à l'écran, attendre un délai fixé par les propriétés de la partie (\texttt{Input.oz}), enlever la bombe de l'écran, et traiter l'explosion de la bombe (\ref{gestion_bombes}).
+La différence majeure, elle, se situe au niveau la gestion de l'amorçage de bombes. Ici, lorsque la procédure reçoit comme action du joueur de poser une bombe, un \emph{thread} indépendant est créé. Le but de ce \emph{thread} est simple: afficher la bombe à l'écran, attendre un délai fixé par les propriétés de la partie (\texttt{Input.oz}), enlever la bombe de l'écran, et traiter l'explosion de la bombe (\ref{gestion_bombes}).
 
 \subsection{Gestion des évènements}
-\paragraph{Mot au lecteur.}Les justifications qui suivent sont justifiées pour le mode simultané, pas pour le mode tour par tour. Il était en effet possible de ne pas utiliser des agents pour le mode tour par tour, contrairement à ce qui est fait ici. Mais, dans un souci de clarté et afin de pouvoir réutiliser du code déjà existant (sans pour autant impacter les performances de notre programme, du moins estimons-nous), nous avons utilisé le même fonctionnement pour le premier mode de jeu. \\ \\
+\paragraph{Mot au lecteur.}Les justifications qui suivent sont fondées pour le mode simultané, pas pour le mode tour par tour. Il était en effet possible de ne pas utiliser des agents pour le mode tour par tour, contrairement à ce qui est fait ici. Mais, dans un souci de clarté et afin de pouvoir réutiliser du code déjà existant (sans pour autant impacter les performances de notre programme, du moins estimons-nous), nous avons utilisé le même fonctionnement pour les deux modes de jeu. \\ \\
 Plusieurs évènements peuvent arriver pendant la partie: une boite peut exploser dû à une bombe qui a elle-même explosé, faisant apparaitre un bonus ou un point; un joueur peut se déplacer, ou encore mourir, ce qui peut potentiellement indiquer la fin de la partie. Dans ce cas, il faut savoir identifier le vainqueur, etc... Il faut donc un mécanisme qui permette aux différents agents de traitement de joueurs (\ref{simult}) d'être tenus au courant des dernières modifications. \\ \\
 Nous avons décidé de créer un port différent pour chaque type d'évènement, et une fonction différente pour traiter chacun des \emph{streams} de ces ports, pour pouvoir gérer chaque évènement et chaque changement d'état du jeu indépendamment du reste. Nous expliquons ci-dessous les différents ports utilisés pour gérer ces changements d'état/évènements.
 \subsubsection{Gestion de la carte: \texttt{MapHandler}}
 \label{gestion_map}
-Cet agent est responsable de la carte de jeu. Dès qu'une modification doit être faite, un message est envoyé et traité par l'agent. Celui-ci tient donc comme argument, en plus du \emph{Stream} à traiter, la version la plus récente de la carte. Il est également possible (et nécessaire) de demander à cet agent la dernière version de la carte de jeu, par exemple pour savoir si le joueur est arrivé sur une case où un bonus est présent, ou bien si l'explosion d'une bombe brise une boîte à bonus/point.
+Cet agent est responsable de la carte de jeu. Dès qu'une modification doit être faite, un message est envoyé et traité par l'agent. Celui-ci tient donc comme argument, en plus du \emph{Stream} à traiter, la version la plus récente de la carte. Il est également possible (et nécessaire) de demander à cet agent la dernière version de la carte de jeu, par exemple pour savoir si le joueur est arrivé sur une case où un bonus est présent, ou bien si l'explosion d'une bombe détruit une boîte à bonus/point.
 \subsubsection{Gestion des morts: \texttt{CheckEndGameAdvanced}}
 \label{gestion_morts}
 Cet agent tient une liste de tous les joueurs encore en vie. Cela permet entre-autres de déterminer si la partie doit se finir puisqu'il n'y a plus qu'un/aucun joueur présent sur la carte. Cet agent peut aussi donner la liste des joueurs encore en vie; c'est ce qui est utilisé par les agents de joueurs pour déterminer si le joueur est encore en vie ou non dans la partie.
@@ -59,21 +60,21 @@ Cet agent est utilisé lorsqu'une bombe doit exploser. Il propage le feu sur la 
 	\item \texttt{BombPosition}: l'emplacement de la bombe
 	\item \texttt{TheMap}: la version la plus récente de la carte
 \end{itemize}
-Cette fonction s'occupe de la propagation du feu. Elle affiche tout d'abord à l'écran du feu à l'endroit de l'explosion de la bombe, puis propage ce feu dans les quatre directions cardinales par rapport à cette position (avec la procédure \texttt{PropagationInOneDirection}). Cette procédure vérifie si le feu peut se propager (c'est-à-dire si il ne s'agit pas d'un mur et si la limite de propagation n'est pas atteinte). Si c'est le cas, alors nous regardons si la case de propagation est une case boite. Si oui alors la boite est détruite (\ref{gestion_boxes}) et nous vérifions s'il s'agit de la fin de la partie. Si non, alors le feu à cette position peut potentiellement tuer un joueur et continue de se propager.
+Cette fonction s'occupe de la propagation du feu. Elle affiche tout d'abord à l'écran du feu à l'endroit de l'explosion de la bombe, puis propage ce feu dans les quatre directions cardinales par rapport à cette position (avec la procédure \texttt{PropagationInOneDirection}). Cette procédure vérifie si le feu peut se propager (c'est-à-dire si il ne s'agit pas d'un mur et si la limite de propagation n'est pas atteinte). Si c'est le cas, alors nous regardons si la case de propagation est une case boite. Si oui alors la boite est détruite (\ref{gestion_boxes}) et nous vérifions s'il s'agit de la fin de la partie. Si non, alors le feu à cette position peut potentiellement tuer un joueur (procédure \texttt{ProcessDeath}) et continue de se propager.
 \subsubsection{Gestion des positions: \texttt{PositionsHandler}}
 \label{gestion_positions}
 Le fonctionnement de cet agent est fort semblable à celui de la gestion de la carte: il tient une liste de la position actuelle de chacun des joueurs; et modifie celle-ci lorsqu'un joueur effectue un déplacement. \\ \\
 Cet agent est utilisé pour connaitre la position actuelle des joueurs lorsqu'une bombe explose. Il était aussi possible de demander au joueur sa position (et stocker celle-ci comme argument dans la procédure \texttt{APlayer} (\ref{simult})), mais nous avons préféré garder le même fonctionnement que pour les autres agents utilisés.
 \subsubsection{Gestion des points: \texttt{PointHandler}}
 \label{gestion_points}
-Les points actuels sont stockés et modifiés via cet agent. Cela permet, en fin de partie, de récupérer le nombre de points de chaque joueurs ayant commencé la partie. Comme pour la gestion des positions (\ref{gestion_positions}), nous aurions pu stocker cette donné dans la procédure du joueur (ou en argument de la procédure \texttt{TurnByTurn} en mode tour par tour).
+Les points actuels sont stockés et modifiés via cet agent. Cela permet, en fin de partie, de récupérer le nombre de points de chaque joueurs ayant commencé la partie. Comme pour la gestion des positions (\ref{gestion_positions}), nous aurions pu stocker cette donné dans la procédure du joueur (ou en argument de la procédure \texttt{TurnByTurn} en mode tour par tour). Notons que nous ne donnons qu'un seul et unique vainqueur par partie, même en cas d'égalité de points.
 \subsubsection{Gestion des boxes: \texttt{BoxHandler}}
 \label{gestion_boxes}
-Il est important de tenir le compte du nombre de boîtes encore intactes sur la carte, puisque la partie est considérée comme terminée lorsqu'il n'y a plus aucune de celles-ci sur la carte de jeu. L'agent tient donc un compte du nombre de \emph{boxes} encore sur la carte, et peut recevoir des notifications d'une explosion de boite. Avant de décrémenter le compte total de boites encore présentes, l'agent vérifie si la boite indiquée par la position donnée est encore sur la carte. Cela peut permettre d'éviter certains problèmes de désynchronisation entre deux explosions de bombes dans le mode simultané. C'est d'ailleurs cet agent qui demande à l'agent de la gestion de la carte de modifier celle-ci (\ref{gestion_map}).
+Il est important de tenir le compte du nombre de boîtes encore intactes sur la carte, puisque la partie est considérée comme terminée lorsqu'il n'y a plus aucune de celles-ci sur celle-ci. L'agent tient donc un compte du nombre de \emph{boxes} encore sur la carte, et peut recevoir des notifications d'une explosion de boite. Avant de décrémenter le compte total de boites encore présentes, l'agent vérifie si la boite indiquée par la position donnée est encore sur la carte. Cela peut permettre d'éviter certains problèmes de désynchronisation entre deux explosions de bombes dans le mode simultané. C'est d'ailleurs cet agent qui demande à l'agent de la gestion de la carte de modifier celle-ci (\ref{gestion_map}).
 
 \section{Joueurs : \texttt{PlayerXXXname.oz}}
-Dans cette partie du projet, nous avons mis en place 2 joueurs. Un joueur simple qui agit de manière assez aléatoire et un autre joueur plus intelligent qui agit de manière stratégique.
-\subsection{Joueur basique : \texttt{Player001random.oz}}
+Dans cette partie du projet, nous avons mis en place 3 joueurs. Un joueur simple qui agit de manière assez aléatoire et deux joueurs un peu plus intelligents.
+\subsection{Joueur basique : \texttt{Player100random.oz}}
 Ce joueur se déplacera sur le plan de jeu de manière aléatoire et posera, si possible, une bombe avec une probabilité de 0.1.
 \subsection{Joueur avancé: \texttt{Player100advanced.oz}}
 Étant donné que le gagnant est le joueur possédant le plus de points à la fin de la partie, la stratégie de notre joueur avancé est de se concentrer sur les boîtes de points/bonus et non sur l'adversaire. Le joueur ne prête donc aucun intérêt aux joueurs adverses, mais uniquement à sa sécurité et aux points potentiels de la carte de jeu. Nous pouvons voir le comportement de notre joueur comme une suite de vérifications "d'états" pour le prochain mouvement à effectuer:
@@ -85,12 +86,12 @@ Ce joueur se déplacera sur le plan de jeu de manière aléatoire et posera, si 
 			\item Si une case sûre est adjacente à la case du joueur, le joueur se déplace sur cette case.
 			\item Sinon, le joueur se déplace dans la direction opposée à la case où est située la bombe causant l'insécurité du joueur.
 		\end{itemize}
-	\item Si le joueur est en lieu sûr, mais qu'il n'y a aucun bonus/point/\emph{boxe}, alors le joueur se déplace de façon aléatoire.
+	\item Si le joueur est en lieu sûr, mais qu'il n'y a aucun(e) bonus/point/boite, alors le joueur se déplace de façon aléatoire.
 \end{itemize}
 \subsection{Jon Snow: \texttt{Player100JonSnow}}
-Ce joueur a un comportement fort similaire au joueur précédent. Le seul changement majeur est que, lorsque Jon peut se déplacer sur plusieurs cases sûres, il va de préférence aller vers la case le rapprochant du/de la bonus/point/boite le/la plus proche de lui. Pour faire cela, nous effectuons un \texttt{BFS} où les souces sont toutes les cases sûres où Jon peut se déplacer. Ensuite, nous cherchons le/la bonus/point/boite le/la plus proche, et le joueur se déplace vers cette direction.
+Ce joueur a un comportement fort similaire au joueur précédent. Le seul changement majeur est que, lorsque Jon peut se déplacer sur plusieurs cases sûres, il va de préférence aller vers la case le rapprochant du/de la bonus/point/boite le/la plus proche de lui. Pour faire cela, nous effectuons un \texttt{BFS} où les souces sont toutes les cases sûres où Jon peut se déplacer. Ensuite, nous cherchons le/la bonus/point/boite le/la plus proche, et le joueur se déplace dans cette direction.
 \section{Interopérabilité}
-Nous avons effectué des tests d'interopérabilité avec 5 groupes différents. Grâce aux plateformes déployées par d'autres étudiants, nous avons pu vérifier si notre contrôleur fonctionnait avec ces autres joueurs. Pour chacun des joueurs testés qui fonctionnaient avec notre contrôleur, nous avons aussi lancé notre propre suite de tests.
+Nous avons effectué des tests d'interopérabilité avec plusieurs groupes différents. Grâce aux plateformes déployées par d'autres étudiants, nous avons pu vérifier si notre contrôleur fonctionnait avec ces autres joueurs. Pour chacun des joueurs testés qui fonctionnaient avec notre contrôleur, nous avons aussi lancé notre propre suite de tests.
 \begin{itemize}
 	\item \texttt{Player021IA2} de Corentin de Mêeus. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
 	\item \texttt{Player005Umberto} de Brieuc de Voghel. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
@@ -99,12 +100,13 @@ Nous avons effectué des tests d'interopérabilité avec 5 groupes différents. 
 	\item \texttt{Player106noob} de Matthieu Villebrun. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
 	\item \texttt{Player007Zorro} de Nizar Bousselmi. Aucun problème rencontré avec ce joueur. Celui-ci ne passait pas tous nos tests personnels.
 	\item \texttt{Player010IA} de Xavier Nguyen. Aucun problème rencontré avec ce joueur. Celui-ci ne passait pas tous nos tests personnels.
+	\item \texttt{Player022Immortal} de Nicolas Chauvaux. Aucun problème rencontré avec ce joueur. Il a également passé tous nos tests.
 \end{itemize}
 \section{Extensions}
 Trois types d'extensions ont été ajoutés à notre travail:
 \begin{itemize}
-	\item Bonus: Comme dit dans l'introduction, nous avons ajouté les boucliers et les vies additionnelles comme bonus des boites "bonus" de la carte.
-	\item GUI: nous avons modifié à notre guise le \emph{GUI}. Chaque joueur a une petite image; des icônes pour les bombes, le feu, les bonus et points ont été ajoutées; le terrain de jeu a aussi été changé.
+	\item Bonus: Comme dit dans l'introduction, nous avons ajouté les boucliers et les vies additionnelles comme gain des boites "bonus" de la carte.
+	\item GUI: nous avons modifié à notre guise le \emph{GUI}. Chaque joueur a une petite image; des icônes pour les bombes, le feu, les bonus et points ont été ajoutées; le terrain de jeu a aussi été changé. Nous avons aussi ajouté un boutton \emph{Start Game} qui démarre le jeu; celui-ci ne commence pas si personne n'appuie sur le bouton. 
 	\item Tests: nous avons créé une suite de tests (\texttt{Test.oz}). Cette série de tests vérifie d'abord quelques opérations triviales:
 		\begin{itemize}
 			\item Faire un déplacement dans une zone autorisée
@@ -112,24 +114,24 @@ Trois types d'extensions ont été ajoutés à notre travail:
 			\item Mourir et réapparaitre au bon endroit (spawn de départ)
 			\item Recevoir les vies additionnelles; recevoir un bouclier et l'utiliser lorsque le joueur a été notifié comme touché
 		\end{itemize}
-	En plus de cela, nous avons aussi testé quelques \emph{border cases}:
+	En plus de cela, nous avons aussi testé un \emph{border case}:
 		\begin{itemize}
 			\item Le joueur est déjà mort et est à nouveau notifié de sa mort: il doit \emph{bind} les identificateurs reçus à \texttt{null}
 			
 		\end{itemize}
-	Pour rendre son utilisation plus simple, nous avons ajouté des commandes dans le makefile :
+	Pour rendre son utilisation plus simple, nous avons ajouté les commandes suivantes dans le \emph{makefile} :
 	\begin{itemize}
-		\item \texttt{test} compile les fichiers nécessaire pour les tests et lance les tests
-		\item \texttt{compileTest} compile les fichiers nécessaire pour les tests
-		\item \texttt{run\_test} lance les tests
+		\item \texttt{test}: compile les fichiers nécessaires pour les tests et lance ces derniers
+		\item \texttt{compileTest}: compile les fichiers nécessaires pour les tests
+		\item \texttt{run\_test}: lance les tests
 	\end{itemize}
 	\paragraph{Remarque.}Pour utiliser les tests, il est demandé de mettre en commentaire les lignes 41, 42 et 44; et de décommenter les lignes 46, 47 et 49.
 	\item Autres: Spécifions que lorsque les extensions sont activées, le délais entre deux déplacements de joueurs est diminué et est constant à une valeur de 500ms. De plus, notre joueur avancé \texttt{Player100advanced} peut à ce moment-là rester sur une case sans effectuer de déplacement.
 \end{itemize}
 \section{Les problèmes rencontrés}
-Nous avons rencontré deux types de problèmes majeurs lors de l'implémentation du projet. Le premier est la manière de récupérer l'état des joueurs, comme leur position ou leur nombre de points. De notre point de vue, il aurait été plus simple de pouvoir demander au joueur de donner sa position actuelle, puisqu'il la stocke de toute manière. Or, ici, nous devons la stocker dans le joueur et dans le contrôleur. Il en est de même pour les points de celui-ci. \\ \\
-Le deuxième problème majeur que nous avons rencontré est la gestion de la carte. En effet, celle-ci change au cours de la partie (explosion d'une boite, un bonus récupéré par un joueur,...) et nous avons pris du temps avant de nous rendre compte qu'il était par exemple possible de respecter nos volontés en utilisant un agent spécifique pour la carte uniquement. Nous avons encore eu quelques soucis de synchronisation entre les joueurs et le contrôleur. Par exemple, il arrivait de considérer un joueur comme mort définitivement, alors qu'il avait simplement péri à cause d'une bombe, mais avait encore des vies et n'avait pas encore eu le temps de réapparaitre.
+Nous avons rencontré deux types de problèmes majeurs lors de l'implémentation du projet. Le premier est la manière de récupérer l'état des joueurs, comme leur position ou leur nombre de points. De notre point de vue, il aurait été plus simple de pouvoir demander au joueur de donner sa position actuelle/son nombre de points, puisqu'il stocke ces informations de toute manière. Or, ici, nous devons les stocker dans le joueur et dans le contrôleur.\\ \\
+Le deuxième problème majeur que nous avons rencontré est la gestion de la carte. En effet, celle-ci change au cours de la partie (explosion d'une boite, un bonus récupéré par un joueur,...) et nous avons pris du temps avant de nous rendre compte qu'il était par exemple possible d'utiliser un agent spécifique pour la carte uniquement. Nous avons encore eu quelques soucis de synchronisation entre les joueurs et le contrôleur. Par exemple, il arrivait de considérer un joueur comme mort définitivement, alors qu'il avait simplement péri à cause d'une bombe, mais avait encore des vies et n'avait pas encore eu le temps de réapparaitre.
 
 \section{Conclusion}
-Nous estimons que notre projet respecte toutes les spécifications demandées. De plus, nous avons ajouté quelques extensions à notre travail: deux bonus supplémentaires, une \emph{GUI} modifiée, et une petite série de tests. 
+Nous estimons que notre projet respecte toutes les spécifications demandées. De plus, nous avons ajouté quelques extensions à notre travail: deux bonus supplémentaires, un \texttt{GUI} modifié, et une petite série de tests. 
 \end{document}
