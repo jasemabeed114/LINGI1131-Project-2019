@@ -33,6 +33,7 @@ define
    Player_2
    Player_3
    Player_4
+   JonSnow
    Players
    DrawMap
    PrepareMap
@@ -195,11 +196,16 @@ in
    Player_2 = {QTk.newImage photo(url:Path#"/player_2.gif")}
    Player_3 = {QTk.newImage photo(url:Path#"/player_3.gif")}
    Player_4 = {QTk.newImage photo(url:Path#"/player_4.gif")}
+   JonSnow = {QTk.newImage photo(url:Path#"/jonSnow.gif")}
    Players = [Player_1 Player_2 Player_3 Player_4]
    fun{InitPlayer Grid ID}
       Handle HandleLife HandleScore Id Color LabelPlayer LabelLife LabelScore
-      Choose = {List.nth Players ({OS.rand} mod {List.length Players})+1}
+      Choose
    in
+      if ID.name == player100jonSnow then Choose = JonSnow
+      else
+         Choose = {List.nth Players ({OS.rand} mod {List.length Players})+1}
+      end
       bomber(id:Id color:Color name:_) = ID
       LabelPlayer = label(text:"" handle:Handle borderwidth:2 relief:raised bg:Color ipadx:5 ipady:5 image:Choose)
       LabelLife = label(text:Input.nbLives borderwidth:5 handle:HandleLife relief:solid bg:Color ipadx:5 ipady:5)
