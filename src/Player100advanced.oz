@@ -461,7 +461,7 @@ in
             end
         end
     in
-        {Help PosPlayer PosBombs pt(x:100000 y:100000)}
+        {Help PosPlayer PosBombs pt(x:(Input.nbColumn)*2 y:(Input.nbRow)*2)}
     end
     fun{OnBomb PosPlayers PosBombs ClosestBomb}
         fun{Help PosPlayers PosBombs Pos}
