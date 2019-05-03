@@ -58,58 +58,71 @@ in
 
     Map = Input.map
 
-    %%%%%% Simultaneous %%%%%%%
+    %% The fire is displayed on the screen for 1 sec
     TimeFireDisplay = 1000
 
 
     %% Implement your controller here
     WindowPort = {GUI.portWindow} % Create the window port
     {Send WindowPort buildWindow} % Init the window
-    %{Delay 10000}
 
+    % The initial procedure called by the button in the GUI to start the game
     proc{StartGame}
-        NbPlayers = Input.nbBombers
-        %Positions = [pt(x:2 y:2) pt(x:12 y:6) pt(x:6 y:2) pt(x:3 y:4)] % Up to 4 players
-        thread Positions = {LookForSpawn Input.map} end
-        thread {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort} end
-        if Input.isTurnByTurn then
-            thread 
-                IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
-                BombPort = {NewPort BombStream}
-                MapPort = {NewPort MapStream}
-                PositionPort = {NewPort PositionStream}
-                EndGamePort = {NewPort EndGameStream}
-                BoxPort = {NewPort BoxStream}
-                PointPort = {NewPort PointStream}
+        thread
+            NbPlayers = Input.nbBombers
+            Positions = {LookForSpawn Input.map}
+            if {Length Positions} < NbPlayers then % More players than positions
+                {Browser.browse 'Error, there are more players than spawn positions'}
+            else
+                {InitPlayers NbPlayers Input.colorsBombers Input.bombers Positions PlayersPosition PlayersPort}
+                if Input.isTurnByTurn then
+                    thread 
+                        IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
+                        BombPort = {NewPort BombStream}
+                        MapPort = {NewPort MapStream}
+                        PositionPort = {NewPort PositionStream}
+                        EndGamePort = {NewPort EndGameStream}
+                        BoxPort = {NewPort BoxStream}
+                        PointPort = {NewPort PointStream}
 
-                thread {BombHandler BombStream} end
-                thread {MapHandler MapStream Map} end
-                thread {PositionsHandler PositionStream PlayersPosition} end
-                thread {CheckEndGameAdvanced EndGameStream IDs nil} end
-                thread {BoxHandler BoxStream} end
-                thread {PointHandler PointStream} end
-                {TurnByTurn PlayersPort nil}
-            end
-        else
-            thread
-                IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
-                BombPort = {NewPort BombStream}
-                MapPort = {NewPort MapStream}
-                PositionPort = {NewPort PositionStream}
-                EndGamePort = {NewPort EndGameStream}
-                BoxPort = {NewPort BoxStream}
-                PointPort = {NewPort PointStream}
+                        thread {BombHandler BombStream} end
+                        thread {MapHandler MapStream Map} end
+                        thread {PositionsHandler PositionStream PlayersPosition} end
+                        thread {CheckEndGameAdvanced EndGameStream IDs nil} end
+                        thread {BoxHandler BoxStream} end
+                        thread {PointHandler PointStream} end
+                        {TurnByTurn PlayersPort nil}
+                    end
+                else
+                    thread
+                        IDs = {InitPlayersSpawnInformation PlayersPort PlayersPosition}
+                        BombPort = {NewPort BombStream}
+                        MapPort = {NewPort MapStream}
+                        PositionPort = {NewPort PositionStream}
+                        EndGamePort = {NewPort EndGameStream}
+                        BoxPort = {NewPort BoxStream}
+                        PointPort = {NewPort PointStream}
 
-                thread {BombHandler BombStream} end
-                thread {MapHandler MapStream Map} end
-                thread {PositionsHandler PositionStream PlayersPosition} end
-                thread {CheckEndGameAdvanced EndGameStream IDs nil} end
-                thread {BoxHandler BoxStream} end
-                thread {PointHandler PointStream} end
-                {SimultaneousInitLoop PlayersPort}
+                        thread {BombHandler BombStream} end
+                        thread {MapHandler MapStream Map} end
+                        thread {PositionsHandler PositionStream PlayersPosition} end
+                        thread {CheckEndGameAdvanced EndGameStream IDs nil} end
+                        thread {BoxHandler BoxStream} end
+                        thread {PointHandler PointStream} end
+                        {SimultaneousInitLoop PlayersPort}
+                    end
+                end
             end
         end
     end
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%% FOR THE INITIALISATION %%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    /*
+     Gives all the spawn positions
+     */
     fun{LookForSpawn Map}
         fun{LoopLine Line Y X}
             case Line of nil then nil
@@ -135,6 +148,10 @@ in
     in
         {Loop Map nil 1}
     end
+
+    /*
+     Tell all the players the spawn of everybody
+     */
     fun{InitPlayersSpawnInformation PlayerPort PlayersPosition}
         case PlayerPort#PlayersPosition
         of nil#nil then nil
@@ -147,6 +164,10 @@ in
             ID|{InitPlayersSpawnInformation PortT PositionT}
         end
     end
+
+    /*
+     Init all the players: gives the ID, spawn
+     */
     proc{InitPlayers NbPlayers ColorPlayers NamePlayers Positions PlayersPosition PlayersPort}
         if NbPlayers == 0 then 
             PlayersPosition = nil PlayersPort = nil
@@ -168,22 +189,25 @@ in
         end
     end
 
-    fun{ProcessBombs TheBombs}
-        case TheBombs of nil then nil % we processed all the bombs
-        [] N#Pos#BomberPort|T then
-            if N == 0 then % Bomb has to explode
-            {Send WindowPort hideBomb(Pos)} % GUI information
-            {Send BomberPort add(bomb 1 _)} % Giving back the bomb
-            % Informing other players
-            thread {InformationPlayers PlayersPort info(bombExploded(Pos))} end
-            {Send BombPort bombExplode(Pos)}
-            {ProcessBombs T}
-            else
-                ((N-1)#Pos#BomberPort)|{ProcessBombs T}
-            end
+    /*
+     Procedure that informs all the players of the InformationMessage message
+     */
+    proc{InformationPlayers Ports InformationMessage}
+        case Ports of nil then skip
+        [] H|T then
+            {Send H InformationMessage}
+            {InformationPlayers T InformationMessage}
         end
     end
 
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%% FOR THE TURNBYTURN %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    /*
+     TurnByTurn main controler
+     */
     proc{TurnByTurn ThePlayersPort TheBombs}
         fun{AmIAlive L ID}
             case L of nil then false
@@ -313,14 +337,28 @@ in
         end
     end
 
-    proc{InformationPlayers Ports InformationMessage}
-        case Ports of nil then skip
-        [] H|T then
-            {Send H InformationMessage}
-            {InformationPlayers T InformationMessage}
+    /*
+     Function used in the TurnByTurn mode to treat the dropped bombs
+     */
+    fun{ProcessBombs TheBombs}
+        case TheBombs of nil then nil % we processed all the bombs
+        [] N#Pos#BomberPort|T then
+            if N == 0 then % Bomb has to explode
+            {Send WindowPort hideBomb(Pos)} % GUI information
+            {Send BomberPort add(bomb 1 _)} % Giving back the bomb
+            % Informing other players
+            thread {InformationPlayers PlayersPort info(bombExploded(Pos))} end
+            {Send BombPort bombExplode(Pos)}
+            {ProcessBombs T}
+            else
+                ((N-1)#Pos#BomberPort)|{ProcessBombs T}
+            end
         end
     end
 
+    /*
+     Check if the move to the position pt(x:X y:Y) is valid with the map Map
+     */
    fun{CheckMove X Y Map}
         fun{CheckMap X Y}
             fun{Nth L N}
@@ -353,6 +391,9 @@ in
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%% FOR THE SIMULTANEOUS %%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+    /*
+     Initialisation loop for the simultaneous part
+     */
     proc{SimultaneousInitLoop PlayersPort}
         case PlayersPort of H|T then
             thread {APlayer H} end
@@ -361,6 +402,9 @@ in
         end
     end
 
+    /*
+     Main crontroller for a player
+     */
     proc{APlayer MyPort}
         fun{AmIAlive L ID}
             case L of nil then false
@@ -489,8 +533,13 @@ in
         {Loop}
     end
 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%% AGENTS USED FOR BOTH GAME MODES %%%%%%%%%%%%%%%%%%%%%%%
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 
-
+    /*
+     Agent that handles the positions of the players
+     */
     proc{PositionsHandler Stream Positions}
         fun{ChangePositions ThePositions ID Pos}
             fun{Loop L Count}
@@ -506,7 +555,6 @@ in
         in
             {Loop ThePositions Input.nbBombers}
         end
-    %%%%%%%%%%%%%%%%%%%
     in
         case Stream of Message|T then
             case Message of modif(ID#Pos) then 
@@ -524,6 +572,9 @@ in
         end
     end
 
+    /*
+     Agent that handles the map
+     */
     proc{MapHandler Stream Map}
         fun{SetMapVal Map X Y Value}
             fun{Modif L N Value}
@@ -544,7 +595,6 @@ in
                 end
             end
         end
-    %%%%%%%%%%%%%%%%%%%%
     in
         case Stream of Message|T then
             case Message of modif(Pos#Value) then % Modif the map
@@ -559,6 +609,9 @@ in
         end
     end
 
+    /*
+     Agent that handles the bombs to eplode now
+     */
     proc{BombHandler Stream}
         case Stream of Message|T then
             case Message of bombExplode(Pos) then
@@ -588,8 +641,14 @@ in
         end
     end
 
+    /*
+     Propagates the fire from position BombPosition to cardinal directions
+     */
     proc{PropagationFireSimult BombPosition TheMap ResultWaitOut}
 
+        /*
+         Check if the fire at position FirePosition killed some players
+         */
         proc{ProcessDeath FirePosition PlayerPorts PlayersPosition}
             case PlayerPorts#PlayersPosition of nil#_ then skip
             [] (PortH|PortT)#(PosH|PosT) then
@@ -628,6 +687,9 @@ in
             end
         end
 
+        /*
+         Propagates the fire in one direction
+         */
         proc{PropagationOneDirection CurrentPosition PreviousPosition Count}
             %{Delay 1000}
             if Count >= Input.fire then skip
@@ -722,9 +784,12 @@ in
                 ResultWaitOut = 1
             end
         end
-
     end
 
+    /*
+     Procedure to force the end of the game:
+     it sends to the EndGame port that all the players are dead
+     */
     proc{ForceEndGame}
         proc{Loop Ports}
             case Ports of nil then skip
@@ -741,6 +806,9 @@ in
         {Loop PlayersPort}
     end
 
+    /*
+     Check if it is the end of the game relatively to the number of players alive on the board
+     */
     proc{CheckEndGameAdvanced Stream AlivePlayers DeadPlayers}
         fun{DeleteDeadPlayer AlivePlayers Dead}
             case AlivePlayers of H|T then
@@ -788,6 +856,10 @@ in
         end
     end
 
+    /*
+     Agent that handles the number of boxes on the board
+     Can tell if it is the end of the game because there isn't any box left on the board
+     */
     proc{BoxHandler Stream}
         fun{Nth L N}
             if N == 1 then L.1
@@ -858,6 +930,11 @@ in
         {Loop Stream TotalCount}
     end
 
+    /*
+     Agent that handles the points of the players
+     Can tell which player is the winner
+     Only give one winner
+     */
     proc{PointHandler Stream}
         fun{ChangePoints ThePoints ID Points}
             fun{Loop L Count}

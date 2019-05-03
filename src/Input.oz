@@ -31,8 +31,8 @@ in
 
 %%%% Style of game %%%%
    
-   IsTurnByTurn = true
-   UseExtention = false %set to false for interop
+   IsTurnByTurn = false
+   UseExtention = true %set to false for interop
    PrintOK = false
 
 
