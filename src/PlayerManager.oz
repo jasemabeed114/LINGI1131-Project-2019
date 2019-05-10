@@ -4,6 +4,9 @@ import
    Player100random
    Player100advanced
    Player100JonSnow
+   Player010IA2
+   Player105Alice
+   Player005Umberto
    /* 
    USED FOR INTEROP
    Player021IA2
@@ -31,11 +34,11 @@ in
       [] player100random then {Player100random.portPlayer ID}
       [] player100advanced then {Player100advanced.portPlayer ID}
       [] player100jonSnow then {Player100JonSnow.portPlayer ID}
-      /* 
-      USED FOR INTEROP
       [] corentin then {Player021IA2.portPlayer ID}
       [] brieuc then {Player005Umberto.portPlayer ID}
       [] cyril then {Player105Alice.portPlayer ID}
+      /* 
+      USED FOR INTEROP
       [] matthieu then {Player106noob.portPlayer ID}
       [] xavier then {Player010IA.portPlayer ID}
       [] zorro then {Player007Zorro.portPlayer ID}
