@@ -1,6 +1,5 @@
 functor
 import
-   Player000name
    Player000bomber
    Player100random
    Player100advanced
@@ -46,7 +45,6 @@ in
       */
       %% Add here the pattern to recognize the name used in the 
       %% input file and launch the portPlayer function from the functor
-      [] player000name then {Player000name.portPlayer ID}
       else
          raise 
             unknownedPlayer('Player not recognized by the PlayerManager '#Kind)
