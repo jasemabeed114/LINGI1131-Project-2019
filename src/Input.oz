@@ -1,4 +1,6 @@
 functor
+import
+   System
 export
    isTurnByTurn:IsTurnByTurn
    useExtention:UseExtention
@@ -26,27 +28,23 @@ define
    TimingBomb TimingBombMin TimingBombMax Fire
 
    Map1 Map2 Map3 MapTests MapOZ
+   Demo
 in 
 
+/*
+ Values for Demo:
+  - 0: Turn by turn, 2 players: random and advanced. No extensions
+  - 1: Simultaneous, 2 players: random and advanced. No extensions
+  - 2: Turn by turn, 5 players: random, advanced and jon Snow. No extensions
+  - 3: Simultaneous, 5 players: random, advanced and jon Snow. No extensions
+  - 4: Turn by turn, 4 players: jonSnow and 3 other players from other groups
+ */
 
-%%%% Style of game %%%%
-   
-   IsTurnByTurn = true
-   UseExtention = false %set to false for interop
+   Demo = 0
+
    PrintOK = false
 
-
-%%%% Description of the map %%%%
-   
-   NbRow = 7
-   NbColumn = 13
-
-   Map = Map1
-
-   %NbRow = 4
-   %NbColumn = 5
-
-   %Map = MapTests
+   % All the maps
 
    Map1 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
 	  [1 4 0 3 2 2 2 2 2 3 0 4 1]
@@ -93,6 +91,8 @@ in
 
 %%%% Parameters %%%%
 
+   % These parameters stay the same all along
+
    NbLives = 5
    NbBombs = 1
  
@@ -103,5 +103,76 @@ in
    TimingBomb = 3 
    TimingBombMin = 3000 % in millisecond
    TimingBombMax = 4000 % in millisecond
+
+   case Demo
+   of 0 then % Turn by turn, 2 players: random and advanced. No extensions
+      IsTurnByTurn = true
+      UseExtention = false
+
+      NbBombers = 2
+      Bombers = [player100advanced player100random]
+      ColorBombers = [yellow red]
+
+      Map = Map01
+      NbRow = 7
+      NbColumn = 7
+   [] 1 then % Simultaneous, 2 players: random and advanced. No extensions
+      IsTurnByTurn = false
+      UseExtention = false
+
+      NbBombers = 2
+      Bombers = [player100advanced player100random]
+      ColorBombers = [yellow red]
+
+      Map = Map01
+      NbRow = 7
+      NbColumn = 7
+   [] 2 then % Turn by turn, 5 players: random, advanced and jon Snow. No extensions
+      IsTurnByTurn = true
+      UseExtention = false
+
+      NbBombers = 5
+      Bombers = [player100jonSnow player100advanced player100random player100jonSnow player100advanced]
+      ColorBombers = [yellow red blue black green]
+
+      Map = Map23
+      NbRow = 15
+      NbColumn = 15
+   [] 3 then % Simultaneous, 5 players: random, advanced and jon Snow. No extensions
+      IsTurnByTurn = false
+      UseExtention = false
+
+      NbBombers = 5
+      Bombers = [player100jonSnow player100advanced player100random player100jonSnow player100advanced]
+      ColorBombers = [yellow red blue black green]
+
+      Map = Map23
+      NbRow = 15
+      NbColumn = 15
+   [] 4 then % Turn by turn, 4 players: jonSnow and 3 other players from other groups
+      IsTurnByTurn = true
+      UseExtention = false
+
+      NbBombers = 4
+      Bombers = [player100jonSnow brieuc cyril corentin]
+      ColorBombers = [black red green blue]
+
+      Map = Map4
+      NbRow = 15
+      NbColumn = 15
+   [] 5 then % Last
+      IsTurnByTurn = true
+      UseExtention = false
+
+      NbBombers = 2
+      Bombers = [player100advanced player100random]
+      ColorBombers = [yellow red]
+
+      Map = Map0
+      NbRow = 7
+      NbColumn = 7
+   else
+      {System.show 'Enter a valid value.'}
+   end
 
 end
