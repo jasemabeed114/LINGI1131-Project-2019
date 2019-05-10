@@ -2,6 +2,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[top=1.9cm, bottom=1.9cm, left=1.9cm, right=1.9cm]{geometry} % marges
 \usepackage{array}
+\usepackage[french, english]{babel}
 \usepackage{multirow}
 \usepackage{amsfonts}
 \usepackage{amsmath}
@@ -13,9 +14,12 @@
 \date{Avril 2019}
 
 \begin{document}
-
+	\selectlanguage{english}
 \maketitle
-
+\selectlanguage{french}
+\tableofcontents
+\selectlanguage{english}
+\newpage
 \section{Introduction}
 Ce rapport concerne le projet pour le cours LINGI1131 - Concepts de langages de programmation (\emph{Computer languages concepts}). \\ \\
 Dans un premier temps, en ce qui concerne la partie obligatoire, nous avons effectué tout ce qui était demandé. Des explications sur la structure de notre implémentation de notre contrôleur et de nos joueurs concernent la première partie de notre rapport. Dans un second temps, nous avons ajouté quelques extensions à notre travail. Tout d'abord, nous avons ajouté les deux bonus supplémentaires conseillés lorsqu'un joueur en ramasse un sur le terrain de jeu: le bouclier et la vie supplémentaire. Ensuite, nous avons modifié à notre guise le \texttt{GUI} afin de le rendre plus ludique et plus approprié à un jeu lugubre et mortel tel que le \emph{Bomberman}. Nous avons créé une petite carte en l'honneur de \texttt{Oz}. Enfin, nous avons aussi créé notre propre suite de tests, qui teste quelques cas triviaux et particuliers du comportement attendu des joueurs.
@@ -91,11 +95,11 @@ Ce joueur se déplacera sur le plan de jeu de manière aléatoire et posera, si 
 \subsection{Jon Snow: \texttt{Player100JonSnow}}
 Ce joueur a un comportement fort similaire au joueur précédent. Le seul changement majeur est que, lorsque Jon peut se déplacer sur plusieurs cases sûres, il va de préférence aller vers la case le rapprochant du/de la bonus/point/boite le/la plus proche de lui. Pour faire cela, nous effectuons un \texttt{BFS} où les souces sont toutes les cases sûres où Jon peut se déplacer. Ensuite, nous cherchons le/la bonus/point/boite le/la plus proche, et le joueur se déplace dans cette direction.
 \section{Interopérabilité}
-Nous avons effectué des tests d'interopérabilité avec plusieurs groupes différents. Grâce aux plateformes déployées par d'autres étudiants, nous avons pu vérifier si notre contrôleur fonctionnait avec ces autres joueurs. Pour chacun des joueurs testés qui fonctionnaient avec notre contrôleur, nous avons aussi lancé notre propre suite de tests.
+L'interopérabilité avec le joueur \texttt{Player000bomber} nous a permis de nous assurer que notre contrôleur fonctionnait correctement. Nous développions celui-ci à l'aide du joueur compilé, pour nous assurer que nous nous dirigions vers la bonne voie. De plus, nous avons effectué des tests d'interopérabilité avec plusieurs groupes différents. Grâce aux plateformes déployées par d'autres étudiants, nous avons pu vérifier si notre contrôleur fonctionnait avec ces autres joueurs. Pour chacun des joueurs testés qui fonctionnaient avec notre contrôleur, nous avons aussi lancé notre propre suite de tests.
 \begin{itemize}
-	\item Nous n'avons eu aucun problème avec les joueurs suivants. Ils ont également passé tous nos tests: \texttt{Player021IA2} (groupe 21), \texttt{Player005Umberto} (groupe 05), \texttt{Player106noob} (groupe 106), \texttt{Player007Zorro} (groupe 07), \texttt{Player022Immortal} (groupe 022), \texttt{Player001Turing} (groupe 01), \texttt{Player001Tao} (groupe 01), \texttt{Player055Clever} (groupe 55).
+	\item Nous n'avons eu aucun problème avec les joueurs suivants. Ils ont également passé tous nos tests: \texttt{Player021IA2} (groupe 21), \texttt{Player005Umberto} (groupe 05), \texttt{Player106noob} (groupe 106), \texttt{Player022Immortal} (groupe 022), \texttt{Player001Turing} (groupe 01), \texttt{Player001Tao} (groupe 01), \texttt{Player055Clever} (groupe 55).
 	\item Aucun problème non plus pour les joueurs suivants, mais ceux-ci n'ont pas passé tous nos tests (en tout cas au moment où nous avons testé ces joueurs): \texttt{Player105Alice} (groupe 105), \texttt{Player007Zorro} (groupe 07), \texttt{Player010IA} (groupe 10).
-	\item Impossible de faire fonctionner le joueur suivant (en tout cas au moement où nous avons testé ce joueur): \texttt{Player022smart} (groupe 22).
+	\item Impossible de faire fonctionner le joueur suivant (en tout cas au moment où nous avons testé ce joueur): \texttt{Player022smart} (groupe 22).
 \end{itemize}
 Les groupes suivants ont testé nos 2 joueurs intelligents, et nous ont donné un \emph{feedback} positif sur ceux-ci: 01, 07, 10, 21, 22, 55, 105. \\ \\
 Le groupe suivant nous a indiqué que nos joueurs intelligents retournaient un \emph{floating point exception}: 188 (Magali Legast \& Laritza Cabrera Alba). Nous avons pu corriger notre erreur grâce à eux. 
