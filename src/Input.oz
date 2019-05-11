@@ -28,7 +28,7 @@ define
    TimingBomb TimingBombMin TimingBombMax Fire
 
    Map1 Map2 Map3 MapTests MapOZ
-   Map01 Map23 Map4
+   Map01 Map23
    Demo
 in 
 
@@ -41,37 +41,36 @@ in
   - 4: Turn by turn, 4 players: jonSnow and 3 other players from other groups
  */
 
-   Demo = 0
+   Demo = 2
 
    PrintOK = false
 
    % All the maps
 
    Map01 = [[1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1]
+            [1 2 0 2 0 4 1]
+            [1 0 2 3 2 0 1]
+            [1 2 3 1 3 2 1]
+            [1 0 2 3 2 0 1]
+            [1 4 0 2 0 2 1]
             [1 1 1 1 1 1 1]]
             
    Map23 = [[1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
-            [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]
+            [1 1 1 4 0 0 0 2 0 2 0 0 0 4 1]
+            [1 4 1 1 0 0 0 2 0 2 0 0 2 0 1]
+            [1 0 0 2 2 0 0 2 0 2 0 0 0 0 1]
+            [1 0 0 0 2 2 3 2 3 2 2 2 2 2 1]
+            [1 0 0 0 3 2 2 2 2 3 0 3 3 0 1]
+            [1 2 2 2 2 2 3 1 3 2 2 2 2 2 1]
+            [1 0 3 3 0 2 1 1 1 2 0 3 3 0 1]
+            [1 2 2 2 2 2 3 1 3 2 2 2 1 1 1]
+            [1 0 3 3 0 3 2 2 2 2 2 2 3 3 1]
+            [1 2 2 2 2 2 0 2 0 0 2 1 3 3 1]
+            [1 0 0 0 0 2 0 2 0 0 0 1 3 3 1]
+            [1 0 2 0 0 2 0 2 0 0 2 0 1 3 1]
+            [1 4 0 0 0 2 0 2 0 0 0 0 4 1 1]
             [1 1 1 1 1 1 1 1 1 1 1 1 1 1 1]]
    %%%%%%
-   Map4 = []
    %%%%%%
 
    Map1 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
@@ -82,26 +81,28 @@ in
 	  [1 4 0 2 2 2 2 2 2 2 0 4 1]
 	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
 
-   Map2 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
-	  [1 4 0 1 0 0 0 0 0 1 0 4 1]
-	  [1 0 1 0 0 0 0 0 0 1 2 2 1]
-	  [1 0 1 0 0 0 0 0 0 1 1 3 1]
-	  [1 0 1 0 0 0 0 0 0 1 1 0 1]
-	  [1 4 0 1 0 0 0 0 0 1 0 4 1]
-	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
-
-   Map3 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
-	  [1 4 0 0 0 0 0 0 0 0 0 4 1]
-	  [1 0 0 0 0 0 0 0 0 0 1 0 1]
-	  [1 0 0 0 0 0 0 0 0 0 0 0 1]
-	  [1 0 0 0 0 0 0 0 2 0 0 0 1]
-	  [1 4 0 2 0 0 0 0 0 0 0 4 1]
-	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]
-   
-   MapTests = [[1 1 1 1 1]
-               [1 4 1 1 1]
-               [1 0 1 1 1]
-               [1 1 1 1 1]]
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   Map2 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]%%
+	  [1 4 0 1 0 0 0 0 0 1 0 4 1]      %%
+	  [1 0 1 0 0 0 0 0 0 1 2 2 1]      %%
+	  [1 0 1 0 0 0 0 0 0 1 1 3 1]      %%
+	  [1 0 1 0 0 0 0 0 0 1 1 0 1]      %%
+	  [1 4 0 1 0 0 0 0 0 1 0 4 1]      %%
+	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]     %%
+                                      %%
+   Map3 = [[1 1 1 1 1 1 1 1 1 1 1 1 1]%%
+	  [1 4 0 0 0 0 0 0 0 0 0 4 1]      %%
+	  [1 0 0 0 0 0 0 0 0 0 1 0 1]      %%
+	  [1 0 0 0 0 0 0 0 0 0 0 0 1]      %%
+	  [1 0 0 0 0 0 0 0 2 0 0 0 1]      %%
+	  [1 4 0 2 0 0 0 0 0 0 0 4 1]      %%
+	  [1 1 1 1 1 1 1 1 1 1 1 1 1]]     %%
+                                      %%
+   MapTests = [[1 1 1 1 1]            %%
+               [1 4 1 1 1]            %%
+               [1 0 1 1 1]            %%
+               [1 1 1 1 1]]           %%
+   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
    MapOZ = [[1 1 1 1 1 1 1 1 1 1 1 1 1]
 	  [1 4 0 2 3 0 1 3 2 3 2 4 1]
@@ -113,9 +114,11 @@ in
 
 %%%% Players description %%%%
 
+   /*
    NbBombers = 3
    Bombers = [player100advanced player100jonSnow player100random]
    ColorBombers = [yellow red green]
+   */
 
 %%%% Parameters %%%%
 
@@ -172,7 +175,7 @@ in
 
       NbBombers = 5
       Bombers = [player100jonSnow player100advanced player100random player100jonSnow player100advanced]
-      ColorBombers = [yellow red blue black green]
+      ColorBombers = [yellow red blue orange green]
 
       Map = Map23
       NbRow = 15
@@ -185,20 +188,20 @@ in
       Bombers = [player100jonSnow brieuc cyril corentin]
       ColorBombers = [black red green blue]
 
-      Map = Map4
+      Map = Map1
       NbRow = 15
       NbColumn = 15
    [] 5 then % Last
       IsTurnByTurn = true
-      UseExtention = false
+      UseExtention = true
 
       NbBombers = 2
       Bombers = [player100advanced player100random]
       ColorBombers = [yellow red]
 
-      Map = Map0
+      Map = MapOZ
       NbRow = 7
-      NbColumn = 7
+	   NbColumn = 13
    else
       {System.show 'Enter a valid value.'}
    end

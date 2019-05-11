@@ -7,11 +7,11 @@
 # TODO complete the header with your group number, your noma's and full names
 
 # TODO write your makefile here
-#COMPILE = /Applications/Mozart2.app/Contents/Resources/bin/ozc -c
-#EXECUTE = /Applications/Mozart2.app/Contents/Resources/bin/ozengine
+COMPILE = /Applications/Mozart2.app/Contents/Resources/bin/ozc -c
+EXECUTE = /Applications/Mozart2.app/Contents/Resources/bin/ozengine
 
-COMPILE = ozc -c
-EXECUTE = ozengine
+#COMPILE = ozc -c
+#EXECUTE = ozengine
 
 all: compile input run
 
