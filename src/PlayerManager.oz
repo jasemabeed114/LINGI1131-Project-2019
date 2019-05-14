@@ -4,9 +4,9 @@ import
    Player100random
    Player100advanced
    Player100JonSnow
-   Player010IA2
    Player105Alice
    Player005Umberto
+   Player021IA2
    /* 
    USED FOR INTEROP
    Player021IA2
