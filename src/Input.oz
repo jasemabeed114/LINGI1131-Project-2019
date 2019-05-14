@@ -41,7 +41,7 @@ in
   - 4: Turn by turn, 4 players: jonSnow and 3 other players from other groups
  */
 
-   Demo = 2
+   Demo = 5
 
    PrintOK = false
 
@@ -166,7 +166,7 @@ in
 
       NbBombers = 5
       Bombers = [player100jonSnow player100advanced player100random player100jonSnow player100advanced]
-      ColorBombers = [yellow red blue white green]
+      ColorBombers = [yellow red blue black green]
 
       Map = Map23
       NbRow = 15
@@ -177,7 +177,7 @@ in
 
       NbBombers = 5
       Bombers = [player100jonSnow player100advanced player100random player100jonSnow player100advanced]
-      ColorBombers = [yellow red blue orange green]
+      ColorBombers = [yellow red blue black green]
 
       Map = Map23
       NbRow = 15
@@ -188,7 +188,7 @@ in
 
       NbBombers = 4
       Bombers = [player100jonSnow brieuc cyril corentin]
-      ColorBombers = [white red green blue]
+      ColorBombers = [black red green blue]
 
       Map = Map1
       NbRow = 7
